@@ -3,131 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MJML Email Editor</title>
+    <title>MJML Email Editor - GrapesJS</title>
     
     <!-- GrapesJS CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/grapesjs@0.22.12/dist/css/grapes.min.css">
+    <link href="https://unpkg.com/grapesjs@0.21.10/dist/css/grapes.min.css" rel="stylesheet"/>
     
-    <!-- Custom styles -->
+    <!-- Custom Styles -->
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
             background: #f5f5f5;
             height: 100vh;
             overflow: hidden;
         }
-
+        
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 1rem;
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
+            position: relative;
         }
-
+        
         .header h1 {
             font-size: 1.5rem;
             font-weight: 600;
+            margin: 0;
         }
-
+        
         .header-actions {
             display: flex;
-            gap: 0.5rem;
+            gap: 10px;
         }
-
+        
         .btn {
-            padding: 0.6rem 1.2rem;
+            padding: 8px 16px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 14px;
             font-weight: 500;
             transition: all 0.3s ease;
             color: white;
+            text-decoration: none;
         }
-
+        
         .btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
-
+        
         .btn-primary { background: #4CAF50; }
         .btn-secondary { background: #2196F3; }
         .btn-warning { background: #FF9800; }
-
+        
         #gjs {
-            height: calc(100vh - 80px);
+            height: calc(100vh - 70px);
             width: 100%;
         }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 10000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-        }
-
-        .modal-content {
-            background-color: white;
-            margin: 5% auto;
-            padding: 0;
-            border-radius: 12px;
-            width: 80%;
-            max-width: 800px;
-            max-height: 80vh;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-        }
-
-        .modal-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1rem 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-body {
-            padding: 1.5rem;
-            max-height: 60vh;
-            overflow-y: auto;
-        }
-
-        .close {
-            color: white;
-            font-size: 2rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        #export-code {
-            width: 100%;
-            height: 400px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 1rem;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.85rem;
-            background: #f8f9fa;
-            resize: vertical;
-            margin-bottom: 1rem;
-        }
-
+        
+        /* Loading Overlay */
         .loading {
             position: fixed;
             top: 0;
@@ -140,339 +85,488 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
+            backdrop-filter: blur(3px);
         }
-
+        
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-bottom: 1rem;
+            margin-bottom: 20px;
         }
-
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        /* GrapesJS Panel Customization */
+        
+        .loading h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .loading p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .close {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+        
+        .close:hover {
+            opacity: 0.8;
+        }
+        
+        #export-code {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 13px;
+            background: #f8f9fa;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        
+        /* GrapesJS Custom Styling */
         .gjs-one-bg { background: #2c3e50; }
         .gjs-two-color { color: #ecf0f1; }
         .gjs-three-bg { background: #34495e; }
         .gjs-four-color { color: #ecf0f1; }
-
+        
         .gjs-blocks-c {
             background: #ecf0f1;
             padding: 10px;
         }
-
+        
         .gjs-block {
             background: white;
-            border-radius: 6px;
+            border-radius: 4px;
             margin: 5px 0;
-            padding: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
             cursor: pointer;
-            border: 2px solid transparent;
+            border: 1px solid #e0e0e0;
         }
-
+        
         .gjs-block:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
             border-color: #3498db;
+        }
+        
+        /* Error State */
+        .error-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #e74c3c;
+        }
+        
+        .error-state h3 {
+            margin-bottom: 15px;
+        }
+        
+        .retry-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        
+        /* Success State */
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border: 1px solid #c3e6cb;
         }
     </style>
 </head>
 <body>
-    <!-- Loading -->
+    <!-- Loading Screen -->
     <div id="loading" class="loading">
         <div class="spinner"></div>
-        <p>Loading MJML Email Editor...</p>
+        <h3>Loading MJML Editor</h3>
+        <p>Setting up your email builder...</p>
     </div>
-
+    
     <!-- Header -->
     <header class="header">
-        <h1>📧 MJML Email Editor</h1>
+        <h1>📧 MJML Email Builder</h1>
         <div class="header-actions">
-            <button id="preview-btn" class="btn btn-warning" onclick="previewEmail()">👁️ Preview</button>
-            <button id="export-html-btn" class="btn btn-primary" onclick="exportHTML()">💾 Export HTML</button>
-            <button id="export-mjml-btn" class="btn btn-secondary" onclick="exportMJML()">📄 Export MJML</button>
+            <button class="btn btn-warning" onclick="previewEmail()">👁️ Preview</button>
+            <button class="btn btn-primary" onclick="exportEmail()">💾 Export</button>
+            <button class="btn btn-secondary" onclick="showHelp()">❓ Help</button>
         </div>
     </header>
-
-    <!-- Editor Container -->
-    <div id="gjs"></div>
-
-    <!-- Export Modal -->
-    <div id="export-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Export Code</h3>
-                <span class="close" onclick="closeModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <textarea id="export-code" readonly placeholder="Your code will appear here..."></textarea>
-                <button class="btn btn-primary" onclick="copyCode()">📋 Copy to Clipboard</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/grapesjs@0.22.12/dist/grapes.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/grapesjs-mjml@1.0.13/dist/grapesjs-mjml.min.js"></script>
     
-    <script>
-        let editor;
-
-        // Initialize Editor
-        document.addEventListener('DOMContentLoaded', function() {
-            initEditor();
-        });
-
-        function initEditor() {
-            try {
-                // Check if MJML plugin is available
-                console.log('🔍 Checking if MJML plugin is available...');
-                
-                // Wait a bit for scripts to load completely
-                setTimeout(() => {
-                    if (typeof grapesjs !== 'undefined') {
-                        console.log('✅ GrapesJS loaded successfully');
-                        
-                        // Try to initialize with MJML plugin first
-                        try {
-                            editor = grapesjs.init({
-                                container: '#gjs',
-                                height: '100%',
-                                width: 'auto',
-                                fromElement: true,
-                                plugins: ['grapesjs-mjml'],
-                                pluginsOpts: {
-                                    'grapesjs-mjml': {
-                                        // Optional MJML plugin options
-                                    }
-                                },
-                                canvas: {
-                                    styles: [
-                                        'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
-                                    ]
-                                },
-                                storageManager: {
-                                    type: 'local',
-                                    autosave: true,
-                                    autoload: true
-                                }
-                            });
-
-                            // Check if MJML components are available
-                            setTimeout(() => {
-                                const mjmlAvailable = editor.DomComponents.getType('mj-text') !== undefined;
-                                console.log('🔍 MJML components available:', mjmlAvailable);
-                                
-                                if (mjmlAvailable) {
-                                    console.log('🎉 MJML Editor loaded successfully!');
-                                    loadMJMLContent();
-                                } else {
-                                    console.warn('⚠️ MJML components not found, falling back to HTML editor');
-                                    fallbackToHTMLEditor();
-                                }
-                                
-                                hideLoading();
-                            }, 1000);
-
-                        } catch (mjmlError) {
-                            console.warn('⚠️ MJML plugin failed to load, using fallback:', mjmlError);
-                            fallbackToHTMLEditor();
-                        }
-                        
-                    } else {
-                        throw new Error('GrapesJS not loaded');
-                    }
-                }, 500);
-
-            } catch (error) {
-                console.error('❌ Error initializing editor:', error);
-                showError();
-            }
-        }
-
-        function loadMJMLContent() {
-            // Load MJML template
-            editor.setComponents(`
-                <mj-section background-color="#f0f0f0" padding="20px">
+    <!-- Editor Container with initial MJML content -->
+    <div id="gjs">
+        <mjml>
+            <mj-body>
+                <mj-section background-color="#f0f0f0" padding="20px 0">
                     <mj-column>
                         <mj-text align="center" font-size="28px" color="#333" font-weight="bold">
-                            🎉 MJML Editor Loaded!
+                            🎉 Welcome to MJML Builder!
                         </mj-text>
-                        <mj-text align="center" font-size="16px" color="#666">
-                            Drag MJML components from the left panel to build your email!
+                        <mj-text align="center" font-size="16px" color="#666" padding="10px 0">
+                            Drag components from the left panel to build your email.
                         </mj-text>
-                        <mj-button href="#" background-color="#667eea" color="white">
-                            Start Building
+                        <mj-button href="#" background-color="#667eea" color="white" border-radius="25px" padding="15px 0">
+                            Get Started
                         </mj-button>
                     </mj-column>
                 </mj-section>
                 
-                <mj-section background-color="white" padding="20px">
+                <mj-section background-color="white" padding="30px 0">
                     <mj-column width="50%">
-                        <mj-image src="https://via.placeholder.com/300x200/764ba2/ffffff?text=MJML+Works!" alt="MJML" />
-                        <mj-text align="center" font-weight="bold">MJML Components</mj-text>
-                        <mj-text>You can now use all MJML components like mj-text, mj-button, mj-image, etc.</mj-text>
+                        <mj-image src="https://via.placeholder.com/280x200/764ba2/ffffff?text=Feature+1" alt="Feature 1" padding="0 10px" />
+                        <mj-text align="center" font-weight="bold" font-size="18px" color="#333" padding="15px 10px 5px">
+                            Drag & Drop
+                        </mj-text>
+                        <mj-text align="center" color="#666" padding="0 10px">
+                            Build emails visually by dragging MJML components
+                        </mj-text>
                     </mj-column>
                     <mj-column width="50%">
-                        <mj-image src="https://via.placeholder.com/300x200/4CAF50/ffffff?text=Responsive!" alt="Responsive" />
-                        <mj-text align="center" font-weight="bold">Responsive Design</mj-text>
-                        <mj-text>MJML automatically creates responsive email layouts that work across all email clients.</mj-text>
+                        <mj-image src="https://via.placeholder.com/280x200/4CAF50/ffffff?text=Feature+2" alt="Feature 2" padding="0 10px" />
+                        <mj-text align="center" font-weight="bold" font-size="18px" color="#333" padding="15px 10px 5px">
+                            Responsive
+                        </mj-text>
+                        <mj-text align="center" color="#666" padding="0 10px">
+                            Automatically responsive across all email clients
+                        </mj-text>
                     </mj-column>
                 </mj-section>
-            `);
-        }
-
-        function fallbackToHTMLEditor() {
-            // If MJML doesn't work, create a basic HTML editor
-            editor = grapesjs.init({
-                container: '#gjs',
-                height: '100%',
-                width: 'auto',
-                plugins: [],
-                canvas: {
-                    styles: [
-                        'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
-                    ]
-                },
-                storageManager: {
-                    type: 'local',
-                    autosave: true,
-                    autoload: true
-                }
-            });
-
-            // Load HTML email template
-            editor.setComponents(`
-                <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
-                    <div style="background: #f0f0f0; padding: 20px; text-align: center;">
-                        <h1 style="color: #333; margin: 0;">⚠️ HTML Email Editor</h1>
-                        <p style="color: #666; margin: 10px 0;">MJML plugin didn't load, but you can still build HTML emails!</p>
-                        <a href="#" style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Get Started</a>
-                    </div>
-                    
-                    <div style="background: white; padding: 20px;">
-                        <table width="100%" cellpadding="0" cellspacing="0">
-                            <tr>
-                                <td width="50%" style="padding: 10px;">
-                                    <img src="https://via.placeholder.com/280x180/764ba2/ffffff?text=HTML+Email" alt="HTML" style="width: 100%; height: auto;">
-                                    <h3 style="color: #333; margin: 10px 0;">HTML Editor</h3>
-                                    <p style="color: #666; margin: 0;">You can still build email templates using HTML and CSS.</p>
-                                </td>
-                                <td width="50%" style="padding: 10px;">
-                                    <img src="https://via.placeholder.com/280x180/4CAF50/ffffff?text=Responsive" alt="Responsive" style="width: 100%; height: auto;">
-                                    <h3 style="color: #333; margin: 10px 0;">Manual Responsive</h3>
-                                    <p style="color: #666; margin: 0;">Use tables and media queries for responsive design.</p>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
+                
+                <mj-section background-color="#f8f9fa" padding="20px 0">
+                    <mj-column>
+                        <mj-divider border-width="1px" border-color="#e0e0e0" />
+                        <mj-text align="center" font-size="12px" color="#666" padding="15px 0 0">
+                            © 2025 Your Company. All rights reserved.
+                        </mj-text>
+                        <mj-text align="center" font-size="12px" color="#666" padding="5px 0 0">
+                            <a href="#" style="color: #666; text-decoration: none;">Unsubscribe</a> | 
+                            <a href="#" style="color: #666; text-decoration: none;">Privacy Policy</a>
+                        </mj-text>
+                    </mj-column>
+                </mj-section>
+            </mj-body>
+        </mjml>
+    </div>
+    
+    <!-- Export Modal -->
+    <div id="export-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Export MJML Code</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="success-message">
+                    ✅ Your MJML code is ready! Copy it and use it with any MJML compiler.
                 </div>
-            `);
-
-            hideLoading();
+                <textarea id="export-code" readonly placeholder="Your MJML code will appear here..."></textarea>
+                <button class="btn btn-primary" onclick="copyCode()">📋 Copy to Clipboard</button>
+                <button class="btn btn-secondary" onclick="openMjmlLive()" style="margin-left: 10px;">🌐 Test in MJML Live</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>How to Use This Editor</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <h4>🚀 Getting Started:</h4>
+                <ul style="margin: 10px 0 20px 20px; line-height: 1.6;">
+                    <li><strong>Drag Components:</strong> Use the left panel to drag MJML components into your email</li>
+                    <li><strong>Edit Content:</strong> Click on any element to edit its content and styling</li>
+                    <li><strong>Preview:</strong> Use the Preview button to see how your email looks</li>
+                    <li><strong>Export:</strong> Get your MJML code and convert it to HTML</li>
+                </ul>
+                
+                <h4>📧 Converting MJML to HTML:</h4>
+                <ol style="margin: 10px 0 20px 20px; line-height: 1.6;">
+                    <li>Export your MJML code from this editor</li>
+                    <li>Go to <a href="https://mjml.io/try-it-live" target="_blank">mjml.io/try-it-live</a></li>
+                    <li>Paste your MJML code in the left panel</li>
+                    <li>Copy the generated HTML from the right panel</li>
+                    <li>Use the HTML in your email campaigns!</li>
+                </ol>
+                
+                <h4>⌨️ Keyboard Shortcuts:</h4>
+                <ul style="margin: 10px 0 20px 20px; line-height: 1.6;">
+                    <li><strong>Ctrl+E:</strong> Export MJML code</li>
+                    <li><strong>Ctrl+P:</strong> Preview email</li>
+                    <li><strong>Esc:</strong> Close modals</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://unpkg.com/grapesjs@0.21.10/dist/grapes.min.js"></script>
+    <script src="https://unpkg.com/grapesjs-mjml@1.0.6/dist/grapesjs-mjml.min.js"></script>
+    
+    <script>
+        let editor;
+        let isEditorReady = false;
+        
+        // Initialize editor when DOM and scripts are loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Small delay to ensure scripts are fully loaded
+            setTimeout(initializeEditor, 500);
+        });
+        
+        function initializeEditor() {
+            try {
+                console.log('🚀 Initializing MJML Editor...');
+                
+                // Check if dependencies are loaded
+                if (typeof grapesjs === 'undefined') {
+                    throw new Error('GrapesJS not loaded');
+                }
+                
+                // Initialize editor with MJML plugin
+                editor = grapesjs.init({
+                    fromElement: true, // This is crucial for MJML
+                    container: '#gjs',
+                    height: '100%',
+                    width: 'auto',
+                    plugins: ['grapesjs-mjml'],
+                    pluginsOpts: {
+                        'grapesjs-mjml': {
+                            // MJML plugin options
+                            resetBlocks: true,
+                            resetDevices: true,
+                            resetStyleManager: true,
+                        }
+                    },
+                    canvas: {
+                        styles: [
+                            'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
+                        ]
+                    },
+                    storageManager: {
+                        type: 'local',
+                        autosave: true,
+                        autoload: true,
+                        stepsBeforeSave: 1
+                    }
+                });
+                
+                // Wait for editor to fully load
+                editor.on('load', function() {
+                    console.log('✅ MJML Editor loaded successfully!');
+                    isEditorReady = true;
+                    
+                    // Check if MJML components are available
+                    const mjmlAvailable = editor.DomComponents.getType('mj-text') !== undefined;
+                    console.log('🔍 MJML components available:', mjmlAvailable);
+                    
+                    if (mjmlAvailable) {
+                        console.log('🎉 All MJML components loaded successfully!');
+                        showSuccess();
+                    } else {
+                        console.warn('⚠️ MJML components not found');
+                        showWarning();
+                    }
+                    
+                    hideLoading();
+                });
+                
+                // Handle editor errors
+                editor.on('error', function(error) {
+                    console.error('❌ Editor error:', error);
+                    showError('Editor error: ' + error.message);
+                });
+                
+            } catch (error) {
+                console.error('❌ Failed to initialize editor:', error);
+                showError('Failed to load editor: ' + error.message);
+            }
         }
-
-        function showError() {
-            document.getElementById('loading').innerHTML = `
-                <div style="text-align: center; color: red;">
+        
+        function showSuccess() {
+            console.log('🎉 MJML Editor is ready to use!');
+        }
+        
+        function showWarning() {
+            console.warn('⚠️ MJML plugin may not be fully loaded');
+        }
+        
+        function showError(message) {
+            const loading = document.getElementById('loading');
+            loading.innerHTML = `
+                <div class="error-state">
                     <h3>❌ Error Loading Editor</h3>
-                    <p>There was a problem loading the email editor.</p>
-                    <button onclick="location.reload()" class="btn btn-primary">🔄 Refresh Page</button>
+                    <p>${message}</p>
+                    <button class="retry-btn" onclick="location.reload()">🔄 Retry</button>
                     <p style="margin-top: 20px; font-size: 12px; color: #666;">
-                        If the problem persists, try clearing your browser cache or using an incognito window.
+                        Try refreshing the page or clearing your browser cache.
                     </p>
                 </div>
             `;
         }
-
+        
         function hideLoading() {
             setTimeout(() => {
                 document.getElementById('loading').style.display = 'none';
             }, 1000);
         }
-
+        
         // Export Functions
-        function exportHTML() {
-            if (!editor) return;
-            const mjml = editor.getHtml();
-            document.getElementById('export-code').value = `<!-- MJML Code (Convert to HTML using mjml.io) -->\n\n${mjml}`;
-            document.getElementById('export-modal').style.display = 'block';
+        function exportEmail() {
+            if (!isEditorReady || !editor) {
+                alert('⚠️ Editor is not ready yet. Please wait a moment.');
+                return;
+            }
+            
+            try {
+                const mjmlCode = editor.getHtml();
+                document.getElementById('export-code').value = mjmlCode;
+                document.getElementById('export-modal').style.display = 'block';
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('❌ Error exporting MJML code: ' + error.message);
+            }
         }
-
-        function exportMJML() {
-            if (!editor) return;
-            const mjml = editor.getHtml();
-            document.getElementById('export-code').value = mjml;
-            document.getElementById('export-modal').style.display = 'block';
-        }
-
+        
         function previewEmail() {
-            if (!editor) return;
-            const mjml = editor.getHtml();
-            const previewWindow = window.open('', '_blank');
-            previewWindow.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Email Preview</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
-                        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
-                        .note { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
-                        pre { background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 12px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <div class="note">
-                            <strong>📧 Email Preview</strong><br>
-                            This is your MJML code. To convert to HTML, copy this code to <a href="https://mjml.io/try-it-live" target="_blank">mjml.io</a>
+            if (!isEditorReady || !editor) {
+                alert('⚠️ Editor is not ready yet. Please wait a moment.');
+                return;
+            }
+            
+            try {
+                const mjmlCode = editor.getHtml();
+                const previewWindow = window.open('', '_blank', 'width=800,height=600');
+                previewWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Email Preview</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; margin: 0; }
+                            .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                            .note { background: #e3f2fd; border-left: 4px solid #2196F3; padding: 15px; margin-bottom: 20px; }
+                            pre { background: #f5f5f5; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 12px; line-height: 1.4; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="note">
+                                <strong>📧 MJML Preview</strong><br>
+                                This is your MJML code. To see the final HTML output, copy this code to 
+                                <a href="https://mjml.io/try-it-live" target="_blank">mjml.io/try-it-live</a>
+                            </div>
+                            <pre>${escapeHtml(mjmlCode)}</pre>
                         </div>
-                        <pre>${mjml.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
-                    </div>
-                </body>
-                </html>
-            `);
+                    </body>
+                    </html>
+                `);
+                previewWindow.document.close();
+            } catch (error) {
+                console.error('Preview error:', error);
+                alert('❌ Error generating preview: ' + error.message);
+            }
         }
-
-        // Modal Functions
+        
+        function showHelp() {
+            document.getElementById('help-modal').style.display = 'block';
+        }
+        
         function closeModal() {
-            document.getElementById('export-modal').style.display = 'none';
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.style.display = 'none';
+            });
         }
-
+        
         function copyCode() {
             const textarea = document.getElementById('export-code');
             textarea.select();
             document.execCommand('copy');
-            
-            // Show success message
-            alert('📋 Code copied to clipboard!');
+            alert('📋 MJML code copied to clipboard!');
         }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('export-modal');
-            if (event.target === modal) {
-                closeModal();
-            }
+        
+        function openMjmlLive() {
+            const mjmlCode = document.getElementById('export-code').value;
+            const encodedMjml = encodeURIComponent(mjmlCode);
+            window.open(`https://mjml.io/try-it-live?mjml=${encodedMjml}`, '_blank');
         }
-
-        // Keyboard shortcuts
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Event Listeners
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey || e.metaKey) {
                 switch(e.key) {
                     case 'e':
                         e.preventDefault();
-                        exportMJML();
+                        exportEmail();
                         break;
                     case 'p':
                         e.preventDefault();
@@ -484,31 +578,30 @@
                 closeModal();
             }
         });
-
-        // Debug function
-        function checkEditor() {
-            console.log('=== DEBUGGING INFORMATION ===');
-            console.log('Editor object:', editor);
-            console.log('GrapesJS available:', typeof grapesjs !== 'undefined');
-            
-            if (typeof grapesjs !== 'undefined') {
-                console.log('GrapesJS version:', grapesjs.version);
-                console.log('Available plugins:', Object.keys(grapesjs.plugins.getAll()));
-                console.log('MJML plugin available:', grapesjs.plugins.getAll()['grapesjs-mjml'] !== undefined);
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                closeModal();
             }
-            
-            if (editor) {
-                console.log('Editor initialized:', !!editor);
-                console.log('Available component types:', Object.keys(editor.DomComponents.getTypes()));
-                console.log('mj-text component available:', !!editor.DomComponents.getType('mj-text'));
-                console.log('mj-button component available:', !!editor.DomComponents.getType('mj-button'));
-                console.log('mj-section component available:', !!editor.DomComponents.getType('mj-section'));
-            }
-            console.log('=== END DEBUG INFO ===');
         }
-
-        // Call debug after 3 seconds
-        setTimeout(checkEditor, 3000);
+        
+        // Debug function
+        setTimeout(() => {
+            console.log('=== DEBUG INFO ===');
+            console.log('GrapesJS loaded:', typeof grapesjs !== 'undefined');
+            console.log('Editor object:', editor);
+            if (editor) {
+                console.log('MJML components available:', {
+                    'mj-text': !!editor.DomComponents.getType('mj-text'),
+                    'mj-button': !!editor.DomComponents.getType('mj-button'),
+                    'mj-section': !!editor.DomComponents.getType('mj-section'),
+                    'mj-column': !!editor.DomComponents.getType('mj-column'),
+                    'mj-image': !!editor.DomComponents.getType('mj-image')
+                });
+            }
+            console.log('===================');
+        }, 3000);
     </script>
 </body>
 </html>
