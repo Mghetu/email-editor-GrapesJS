@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MJML Email Editor - GrapesJS</title>
+    <title>Professional Email Builder</title>
     
     <!-- GrapesJS CSS -->
     <link href="https://unpkg.com/grapesjs@0.21.10/dist/css/grapes.min.css" rel="stylesheet"/>
@@ -32,7 +32,6 @@
             align-items: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
-            position: relative;
         }
         
         .header h1 {
@@ -55,7 +54,6 @@
             font-weight: 500;
             transition: all 0.3s ease;
             color: white;
-            text-decoration: none;
         }
         
         .btn:hover {
@@ -66,6 +64,7 @@
         .btn-primary { background: #4CAF50; }
         .btn-secondary { background: #2196F3; }
         .btn-warning { background: #FF9800; }
+        .btn-info { background: #17a2b8; }
         
         #gjs {
             height: calc(100vh - 70px);
@@ -85,7 +84,6 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            backdrop-filter: blur(3px);
         }
         
         .spinner {
@@ -101,16 +99,6 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-        
-        .loading h3 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-        
-        .loading p {
-            color: #666;
-            font-size: 14px;
         }
         
         /* Modal Styles */
@@ -157,11 +145,6 @@
             font-size: 24px;
             font-weight: bold;
             cursor: pointer;
-            line-height: 1;
-        }
-        
-        .close:hover {
-            opacity: 0.8;
         }
         
         #export-code {
@@ -205,35 +188,12 @@
             border-color: #3498db;
         }
         
-        /* Error State */
-        .error-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #e74c3c;
-        }
-        
-        .error-state h3 {
-            margin-bottom: 15px;
-        }
-        
-        .retry-btn {
-            background: #3498db;
+        .success-banner {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
             color: white;
-            border: none;
             padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-        
-        /* Success State */
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 10px 15px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            border: 1px solid #c3e6cb;
+            text-align: center;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -241,89 +201,43 @@
     <!-- Loading Screen -->
     <div id="loading" class="loading">
         <div class="spinner"></div>
-        <h3>Loading MJML Editor</h3>
-        <p>Setting up your email builder...</p>
+        <h3>Loading Email Builder</h3>
+        <p>Setting up your professional email editor...</p>
+    </div>
+    
+    <!-- Success Banner -->
+    <div class="success-banner">
+        🎉 Professional Email Builder Loaded Successfully! Build responsive emails with drag & drop!
     </div>
     
     <!-- Header -->
     <header class="header">
-        <h1>📧 MJML Email Builder</h1>
+        <h1>📧 Professional Email Builder</h1>
         <div class="header-actions">
             <button class="btn btn-warning" onclick="previewEmail()">👁️ Preview</button>
-            <button class="btn btn-primary" onclick="exportEmail()">💾 Export</button>
+            <button class="btn btn-primary" onclick="exportEmail()">💾 Export HTML</button>
+            <button class="btn btn-info" onclick="exportMJML()">📄 Export MJML</button>
             <button class="btn btn-secondary" onclick="showHelp()">❓ Help</button>
         </div>
     </header>
     
-    <!-- Editor Container with initial MJML content -->
-    <div id="gjs">
-        <mjml>
-            <mj-body>
-                <mj-section background-color="#f0f0f0" padding="20px 0">
-                    <mj-column>
-                        <mj-text align="center" font-size="28px" color="#333" font-weight="bold">
-                            🎉 Welcome to MJML Builder!
-                        </mj-text>
-                        <mj-text align="center" font-size="16px" color="#666" padding="10px 0">
-                            Drag components from the left panel to build your email.
-                        </mj-text>
-                        <mj-button href="#" background-color="#667eea" color="white" border-radius="25px" padding="15px 0">
-                            Get Started
-                        </mj-button>
-                    </mj-column>
-                </mj-section>
-                
-                <mj-section background-color="white" padding="30px 0">
-                    <mj-column width="50%">
-                        <mj-image src="https://via.placeholder.com/280x200/764ba2/ffffff?text=Feature+1" alt="Feature 1" padding="0 10px" />
-                        <mj-text align="center" font-weight="bold" font-size="18px" color="#333" padding="15px 10px 5px">
-                            Drag & Drop
-                        </mj-text>
-                        <mj-text align="center" color="#666" padding="0 10px">
-                            Build emails visually by dragging MJML components
-                        </mj-text>
-                    </mj-column>
-                    <mj-column width="50%">
-                        <mj-image src="https://via.placeholder.com/280x200/4CAF50/ffffff?text=Feature+2" alt="Feature 2" padding="0 10px" />
-                        <mj-text align="center" font-weight="bold" font-size="18px" color="#333" padding="15px 10px 5px">
-                            Responsive
-                        </mj-text>
-                        <mj-text align="center" color="#666" padding="0 10px">
-                            Automatically responsive across all email clients
-                        </mj-text>
-                    </mj-column>
-                </mj-section>
-                
-                <mj-section background-color="#f8f9fa" padding="20px 0">
-                    <mj-column>
-                        <mj-divider border-width="1px" border-color="#e0e0e0" />
-                        <mj-text align="center" font-size="12px" color="#666" padding="15px 0 0">
-                            © 2025 Your Company. All rights reserved.
-                        </mj-text>
-                        <mj-text align="center" font-size="12px" color="#666" padding="5px 0 0">
-                            <a href="#" style="color: #666; text-decoration: none;">Unsubscribe</a> | 
-                            <a href="#" style="color: #666; text-decoration: none;">Privacy Policy</a>
-                        </mj-text>
-                    </mj-column>
-                </mj-section>
-            </mj-body>
-        </mjml>
-    </div>
+    <!-- Editor Container -->
+    <div id="gjs"></div>
     
     <!-- Export Modal -->
     <div id="export-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Export MJML Code</h3>
+                <h3 id="export-title">Export Code</h3>
                 <span class="close" onclick="closeModal()">&times;</span>
             </div>
             <div class="modal-body">
-                <div class="success-message">
-                    ✅ Your MJML code is ready! Copy it and use it with any MJML compiler.
+                <div style="background: #e8f5e8; padding: 15px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #4CAF50;">
+                    <strong>✅ Email code ready!</strong> This HTML is optimized for email clients and fully responsive.
                 </div>
-                <textarea id="export-code" readonly placeholder="Your MJML code will appear here..."></textarea>
+                <textarea id="export-code" readonly placeholder="Your email code will appear here..."></textarea>
                 <button class="btn btn-primary" onclick="copyCode()">📋 Copy to Clipboard</button>
-                <button class="btn btn-secondary" onclick="openMjmlLive()" style="margin-left: 10px;">🌐 Test in MJML Live</button>
+                <button class="btn btn-secondary" onclick="downloadHTML()" style="margin-left: 10px;">💾 Download HTML</button>
             </div>
         </div>
     </div>
@@ -332,32 +246,41 @@
     <div id="help-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>How to Use This Editor</h3>
+                <h3>How to Use This Email Builder</h3>
                 <span class="close" onclick="closeModal()">&times;</span>
             </div>
             <div class="modal-body">
-                <h4>🚀 Getting Started:</h4>
+                <h4>🚀 Building Your Email:</h4>
                 <ul style="margin: 10px 0 20px 20px; line-height: 1.6;">
-                    <li><strong>Drag Components:</strong> Use the left panel to drag MJML components into your email</li>
-                    <li><strong>Edit Content:</strong> Click on any element to edit its content and styling</li>
-                    <li><strong>Preview:</strong> Use the Preview button to see how your email looks</li>
-                    <li><strong>Export:</strong> Get your MJML code and convert it to HTML</li>
+                    <li><strong>Drag & Drop:</strong> Use the left panel to drag components into your email</li>
+                    <li><strong>Edit Content:</strong> Double-click text to edit, click elements to style them</li>
+                    <li><strong>Add Images:</strong> Use the image block and replace with your URLs</li>
+                    <li><strong>Style Elements:</strong> Use the right panel to customize colors, fonts, spacing</li>
+                    <li><strong>Preview:</strong> Test your email in different screen sizes</li>
                 </ul>
                 
-                <h4>📧 Converting MJML to HTML:</h4>
+                <h4>📧 Using Your Email:</h4>
                 <ol style="margin: 10px 0 20px 20px; line-height: 1.6;">
-                    <li>Export your MJML code from this editor</li>
-                    <li>Go to <a href="https://mjml.io/try-it-live" target="_blank">mjml.io/try-it-live</a></li>
-                    <li>Paste your MJML code in the left panel</li>
-                    <li>Copy the generated HTML from the right panel</li>
-                    <li>Use the HTML in your email campaigns!</li>
+                    <li>Click "Export HTML" to get your email code</li>
+                    <li>Copy the HTML code</li>
+                    <li>Use it in your email marketing platform (Mailchimp, SendGrid, etc.)</li>
+                    <li>Or send directly through your email system</li>
                 </ol>
                 
-                <h4>⌨️ Keyboard Shortcuts:</h4>
+                <h4>🎯 Email Marketing Platforms:</h4>
                 <ul style="margin: 10px 0 20px 20px; line-height: 1.6;">
-                    <li><strong>Ctrl+E:</strong> Export MJML code</li>
+                    <li><strong>Mailchimp:</strong> Paste in "Code Your Own" template</li>
+                    <li><strong>SendGrid:</strong> Use as custom HTML template</li>
+                    <li><strong>Campaign Monitor:</strong> Import as HTML template</li>
+                    <li><strong>Constant Contact:</strong> Use custom HTML option</li>
+                </ul>
+                
+                <h4>⌨️ Keyboard Shortcuts:</h4>
+                <ul style="margin: 10px 0 0 20px; line-height: 1.6;">
+                    <li><strong>Ctrl+E:</strong> Export email</li>
                     <li><strong>Ctrl+P:</strong> Preview email</li>
-                    <li><strong>Esc:</strong> Close modals</li>
+                    <li><strong>Ctrl+Z:</strong> Undo</li>
+                    <li><strong>Ctrl+Y:</strong> Redo</li>
                 </ul>
             </div>
         </div>
@@ -365,107 +288,448 @@
     
     <!-- Scripts -->
     <script src="https://unpkg.com/grapesjs@0.21.10/dist/grapes.min.js"></script>
-    <script src="https://unpkg.com/grapesjs-mjml@1.0.6/dist/grapesjs-mjml.min.js"></script>
     
     <script>
         let editor;
         let isEditorReady = false;
         
-        // Initialize editor when DOM and scripts are loaded
+        // Initialize editor when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
-            // Small delay to ensure scripts are fully loaded
-            setTimeout(initializeEditor, 500);
+            setTimeout(initializeEditor, 300);
         });
         
         function initializeEditor() {
             try {
-                console.log('🚀 Initializing MJML Editor...');
+                console.log('🚀 Initializing Professional Email Builder...');
                 
-                // Check if dependencies are loaded
-                if (typeof grapesjs === 'undefined') {
-                    throw new Error('GrapesJS not loaded');
-                }
-                
-                // Initialize editor with MJML plugin
                 editor = grapesjs.init({
-                    fromElement: true, // This is crucial for MJML
                     container: '#gjs',
                     height: '100%',
                     width: 'auto',
-                    plugins: ['grapesjs-mjml'],
-                    pluginsOpts: {
-                        'grapesjs-mjml': {
-                            // MJML plugin options
-                            resetBlocks: true,
-                            resetDevices: true,
-                            resetStyleManager: true,
-                        }
-                    },
-                    canvas: {
-                        styles: [
-                            'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
-                        ]
-                    },
+                    
+                    // Storage
                     storageManager: {
                         type: 'local',
                         autosave: true,
                         autoload: true,
                         stepsBeforeSave: 1
+                    },
+                    
+                    // Canvas settings
+                    canvas: {
+                        styles: [
+                            'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
+                            'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap'
+                        ]
+                    },
+                    
+                    // Device manager for responsive design
+                    deviceManager: {
+                        devices: [{
+                            name: 'Desktop',
+                            width: '',
+                        }, {
+                            name: 'Tablet',
+                            width: '768px',
+                            widthMedia: '992px',
+                        }, {
+                            name: 'Mobile',
+                            width: '320px',
+                            widthMedia: '768px',
+                        }]
+                    },
+                    
+                    // Panels configuration
+                    panels: {
+                        defaults: [{
+                            id: 'layers',
+                            el: '.panel__right',
+                            resizable: {
+                                maxDim: 350,
+                                minDim: 200,
+                                tc: 0,
+                                cl: 1,
+                                cr: 0,
+                                bc: 0,
+                                keyWidth: 'flex-basis',
+                            },
+                        }, {
+                            id: 'panel-switcher',
+                            el: '.panel__switcher',
+                            buttons: [{
+                                id: 'show-layers',
+                                active: true,
+                                label: '📑',
+                                command: 'show-layers',
+                                togglable: false,
+                            }, {
+                                id: 'show-style',
+                                active: true,
+                                label: '🎨',
+                                command: 'show-styles',
+                                togglable: false,
+                            }],
+                        }]
+                    },
+                    
+                    // Layer manager
+                    layerManager: {
+                        appendTo: '.layers-container'
+                    },
+                    
+                    // Style manager
+                    styleManager: {
+                        appendTo: '.styles-container',
+                        sectors: [{
+                            name: 'Typography',
+                            properties: [
+                                'font-family', 'font-size', 'font-weight', 'letter-spacing',
+                                'color', 'line-height', 'text-align', 'text-decoration'
+                            ]
+                        }, {
+                            name: 'Layout',
+                            properties: [
+                                'width', 'height', 'max-width', 'margin', 'padding'
+                            ]
+                        }, {
+                            name: 'Background',
+                            properties: [
+                                'background-color', 'background-image', 'background-repeat',
+                                'background-position', 'background-size'
+                            ]
+                        }, {
+                            name: 'Border',
+                            properties: [
+                                'border', 'border-radius', 'box-shadow'
+                            ]
+                        }]
+                    },
+                    
+                    // Block manager
+                    blockManager: {
+                        appendTo: '.blocks-container',
+                        blocks: getEmailBlocks()
                     }
                 });
                 
-                // Wait for editor to fully load
+                // Add custom commands
+                addCustomCommands();
+                
+                // Load default email template
+                loadDefaultTemplate();
+                
+                // Set up editor events
                 editor.on('load', function() {
-                    console.log('✅ MJML Editor loaded successfully!');
+                    console.log('✅ Professional Email Builder loaded successfully!');
                     isEditorReady = true;
-                    
-                    // Check if MJML components are available
-                    const mjmlAvailable = editor.DomComponents.getType('mj-text') !== undefined;
-                    console.log('🔍 MJML components available:', mjmlAvailable);
-                    
-                    if (mjmlAvailable) {
-                        console.log('🎉 All MJML components loaded successfully!');
-                        showSuccess();
-                    } else {
-                        console.warn('⚠️ MJML components not found');
-                        showWarning();
-                    }
-                    
                     hideLoading();
                 });
                 
-                // Handle editor errors
-                editor.on('error', function(error) {
-                    console.error('❌ Editor error:', error);
-                    showError('Editor error: ' + error.message);
+                editor.on('component:selected', function(component) {
+                    console.log('Selected component:', component.get('type'));
                 });
                 
             } catch (error) {
                 console.error('❌ Failed to initialize editor:', error);
-                showError('Failed to load editor: ' + error.message);
+                showError(error.message);
             }
         }
         
-        function showSuccess() {
-            console.log('🎉 MJML Editor is ready to use!');
+        function getEmailBlocks() {
+            return [
+                {
+                    id: 'email-header',
+                    label: '📧 Email Header',
+                    category: 'Email Sections',
+                    content: `
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; padding: 20px 0;">
+                            <tr>
+                                <td align="center">
+                                    <table width="600" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td style="text-align: center; padding: 20px;">
+                                                <h1 style="color: #333; font-family: Arial, sans-serif; font-size: 28px; margin: 0;">Your Brand Name</h1>
+                                                <p style="color: #666; font-size: 16px; margin: 10px 0 0;">Welcome to our newsletter!</p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    `
+                },
+                {
+                    id: 'hero-section',
+                    label: '🌟 Hero Section',
+                    category: 'Email Sections',
+                    content: `
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 0;">
+                            <tr>
+                                <td align="center">
+                                    <table width="600" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td style="text-align: center; padding: 40px 20px;">
+                                                <h2 style="color: white; font-family: Arial, sans-serif; font-size: 32px; margin: 0 0 20px;">Amazing Offer Inside!</h2>
+                                                <p style="color: white; font-size: 18px; margin: 0 0 30px; line-height: 1.6;">Don't miss out on this incredible opportunity to save big.</p>
+                                                <a href="#" style="background-color: #4CAF50; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-size: 16px; font-weight: bold; display: inline-block;">Shop Now</a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    `
+                },
+                {
+                    id: 'two-columns',
+                    label: '📋 Two Columns',
+                    category: 'Email Sections',
+                    content: `
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: white; padding: 30px 0;">
+                            <tr>
+                                <td align="center">
+                                    <table width="600" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td width="280" style="padding: 20px; vertical-align: top;">
+                                                <img src="https://via.placeholder.com/260x180/764ba2/ffffff?text=Feature+1" alt="Feature 1" style="width: 100%; height: auto; border-radius: 8px;">
+                                                <h3 style="color: #333; font-family: Arial, sans-serif; font-size: 20px; margin: 15px 0 10px;">Amazing Feature 1</h3>
+                                                <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0;">Discover why thousands of customers love this incredible feature.</p>
+                                            </td>
+                                            <td width="40"></td>
+                                            <td width="280" style="padding: 20px; vertical-align: top;">
+                                                <img src="https://via.placeholder.com/260x180/4CAF50/ffffff?text=Feature+2" alt="Feature 2" style="width: 100%; height: auto; border-radius: 8px;">
+                                                <h3 style="color: #333; font-family: Arial, sans-serif; font-size: 20px; margin: 15px 0 10px;">Amazing Feature 2</h3>
+                                                <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0;">Learn about our second most popular feature and how it can help you.</p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    `
+                },
+                {
+                    id: 'cta-button',
+                    label: '🔘 CTA Button',
+                    category: 'Email Components',
+                    content: `
+                        <table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px 0;">
+                            <tr>
+                                <td align="center">
+                                    <a href="#" style="background-color: #667eea; color: white; padding: 15px 40px; text-decoration: none; border-radius: 30px; font-size: 16px; font-weight: bold; display: inline-block; font-family: Arial, sans-serif;">Click Here</a>
+                                </td>
+                            </tr>
+                        </table>
+                    `
+                },
+                {
+                    id: 'text-block',
+                    label: '📝 Text Block',
+                    category: 'Email Components',
+                    content: `
+                        <table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px 0;">
+                            <tr>
+                                <td align="center">
+                                    <table width="600" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td style="padding: 0 20px;">
+                                                <h3 style="color: #333; font-family: Arial, sans-serif; font-size: 22px; margin: 0 0 15px;">Your Heading Here</h3>
+                                                <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">Add your content here. This text block is perfect for paragraphs, announcements, or any other text content you want to include in your email.</p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    `
+                },
+                {
+                    id: 'image-block',
+                    label: '🖼️ Image Block',
+                    category: 'Email Components',
+                    content: `
+                        <table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px 0;">
+                            <tr>
+                                <td align="center">
+                                    <img src="https://via.placeholder.com/600x300/667eea/ffffff?text=Your+Image+Here" alt="Your Image" style="max-width: 600px; width: 100%; height: auto; border-radius: 8px;">
+                                </td>
+                            </tr>
+                        </table>
+                    `
+                },
+                {
+                    id: 'spacer',
+                    label: '↕️ Spacer',
+                    category: 'Email Components',
+                    content: `
+                        <table width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td style="height: 30px; line-height: 30px;">&nbsp;</td>
+                            </tr>
+                        </table>
+                    `
+                },
+                {
+                    id: 'divider',
+                    label: '➖ Divider',
+                    category: 'Email Components',
+                    content: `
+                        <table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px 0;">
+                            <tr>
+                                <td align="center">
+                                    <table width="600" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td style="padding: 0 20px;">
+                                                <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 0;">
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    `
+                },
+                {
+                    id: 'email-footer',
+                    label: '📄 Email Footer',
+                    category: 'Email Sections',
+                    content: `
+                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; padding: 30px 0;">
+                            <tr>
+                                <td align="center">
+                                    <table width="600" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td style="text-align: center; padding: 20px;">
+                                                <p style="color: #666; font-size: 12px; line-height: 1.6; margin: 0 0 10px;">© 2025 Your Company Name. All rights reserved.</p>
+                                                <p style="color: #666; font-size: 12px; line-height: 1.6; margin: 0;">
+                                                    <a href="#" style="color: #666; text-decoration: none;">Unsubscribe</a> | 
+                                                    <a href="#" style="color: #666; text-decoration: none;">Privacy Policy</a> | 
+                                                    <a href="#" style="color: #666; text-decoration: none;">Contact Us</a>
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    `
+                }
+            ];
         }
         
-        function showWarning() {
-            console.warn('⚠️ MJML plugin may not be fully loaded');
+        function addCustomCommands() {
+            editor.Commands.add('show-layers', {
+                getRowEl(editor) { return editor.getContainer().closest('.editor-row'); },
+                getLayersEl(row) { return row.querySelector('.layers-container') },
+                
+                run(editor, sender) {
+                    const lmEl = this.getLayersEl(this.getRowEl(editor));
+                    lmEl.style.display = '';
+                },
+                stop(editor, sender) {
+                    const lmEl = this.getLayersEl(this.getRowEl(editor));
+                    lmEl.style.display = 'none';
+                },
+            });
+            
+            editor.Commands.add('show-styles', {
+                getRowEl(editor) { return editor.getContainer().closest('.editor-row'); },
+                getStyleEl(row) { return row.querySelector('.styles-container') },
+                
+                run(editor, sender) {
+                    const smEl = this.getStyleEl(this.getRowEl(editor));
+                    smEl.style.display = '';
+                },
+                stop(editor, sender) {
+                    const smEl = this.getStyleEl(this.getRowEl(editor));
+                    smEl.style.display = 'none';
+                },
+            });
         }
         
-        function showError(message) {
-            const loading = document.getElementById('loading');
-            loading.innerHTML = `
-                <div class="error-state">
-                    <h3>❌ Error Loading Editor</h3>
-                    <p>${message}</p>
-                    <button class="retry-btn" onclick="location.reload()">🔄 Retry</button>
-                    <p style="margin-top: 20px; font-size: 12px; color: #666;">
-                        Try refreshing the page or clearing your browser cache.
-                    </p>
-                </div>
+        function loadDefaultTemplate() {
+            const defaultTemplate = `
+                <table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4;">
+                    <tr>
+                        <td align="center" style="padding: 20px 0;">
+                            
+                            <!-- Header -->
+                            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px 8px 0 0;">
+                                <tr>
+                                    <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                                        <h1 style="color: white; margin: 0; font-size: 28px;">🎉 Welcome to Our Newsletter!</h1>
+                                        <p style="color: white; margin: 10px 0 0; font-size: 16px;">Professional email templates made easy</p>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Content -->
+                            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff;">
+                                <tr>
+                                    <td style="padding: 40px 30px;">
+                                        <h2 style="color: #333; margin: 0 0 20px; font-size: 24px;">Build Professional Emails in Minutes</h2>
+                                        <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 25px;">
+                                            This email builder gives you everything you need to create stunning, responsive emails that work across all email clients. 
+                                            Drag and drop components, customize styles, and export clean HTML code.
+                                        </p>
+                                        
+                                        <table cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                            <tr>
+                                                <td>
+                                                    <a href="#" style="background-color: #4CAF50; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-size: 16px; font-weight: bold; display: inline-block;">Get Started</a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Features -->
+                            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff;">
+                                <tr>
+                                    <td style="padding: 0 30px 40px;">
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td width="50%" style="padding-right: 15px; vertical-align: top;">
+                                                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center;">
+                                                        <h3 style="color: #333; margin: 0 0 10px; font-size: 18px;">🎨 Easy Styling</h3>
+                                                        <p style="color: #666; font-size: 14px; margin: 0; line-height: 1.5;">Customize colors, fonts, and layouts with our intuitive style panel.</p>
+                                                    </div>
+                                                </td>
+                                                <td width="50%" style="padding-left: 15px; vertical-align: top;">
+                                                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center;">
+                                                        <h3 style="color: #333; margin: 0 0 10px; font-size: 18px;">📱 Responsive</h3>
+                                                        <p style="color: #666; font-size: 14px; margin: 0; line-height: 1.5;">Your emails will look perfect on desktop, tablet, and mobile devices.</p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Footer -->
+                            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; border-radius: 0 0 8px 8px;">
+                                <tr>
+                                    <td style="padding: 30px; text-align: center;">
+                                        <p style="color: #666; font-size: 12px; margin: 0 0 10px;">© 2025 Your Company. All rights reserved.</p>
+                                        <p style="color: #666; font-size: 12px; margin: 0;">
+                                            <a href="#" style="color: #666; text-decoration: none;">Unsubscribe</a> | 
+                                            <a href="#" style="color: #666; text-decoration: none;">Privacy Policy</a>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                        </td>
+                    </tr>
+                </table>
             `;
+            
+            // Only load default if no saved content
+            if (!localStorage.getItem('gjs-components')) {
+                editor.setComponents(defaultTemplate);
+            }
         }
         
         function hideLoading() {
@@ -474,59 +738,154 @@
             }, 1000);
         }
         
+        function showError(message) {
+            const loading = document.getElementById('loading');
+            loading.innerHTML = `
+                <div style="text-align: center; color: #e74c3c;">
+                    <h3>❌ Error Loading Editor</h3>
+                    <p>${message}</p>
+                    <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 15px;">🔄 Retry</button>
+                </div>
+            `;
+        }
+        
         // Export Functions
         function exportEmail() {
             if (!isEditorReady || !editor) {
-                alert('⚠️ Editor is not ready yet. Please wait a moment.');
+                alert('⚠️ Editor is not ready yet. Please wait.');
                 return;
             }
             
             try {
-                const mjmlCode = editor.getHtml();
-                document.getElementById('export-code').value = mjmlCode;
+                const htmlCode = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Email</title>
+    <!--[if mso]>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:AllowPNG/>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <![endif]-->
+</head>
+<body style="margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+${editor.getHtml()}
+</body>
+</html>`;
+                
+                document.getElementById('export-title').textContent = 'Export HTML Email';
+                document.getElementById('export-code').value = htmlCode;
                 document.getElementById('export-modal').style.display = 'block';
             } catch (error) {
-                console.error('Export error:', error);
-                alert('❌ Error exporting MJML code: ' + error.message);
+                alert('❌ Error exporting email: ' + error.message);
             }
+        }
+        
+        function exportMJML() {
+            if (!isEditorReady || !editor) {
+                alert('⚠️ Editor is not ready yet. Please wait.');
+                return;
+            }
+            
+            // Convert HTML table structure to MJML-like format
+            const htmlContent = editor.getHtml();
+            const mjmlCode = `<mjml>
+    <mj-head>
+        <mj-title>Your Email Title</mj-title>
+        <mj-attributes>
+            <mj-all font-family="Arial, sans-serif" />
+        </mj-attributes>
+    </mj-head>
+    <mj-body>
+        <!-- 
+        Note: This is a simplified MJML conversion.
+        For full MJML functionality, copy your HTML and manually convert it to MJML syntax.
+        Use https://mjml.io/try-it-live for testing.
+        -->
+        <mj-section>
+            <mj-column>
+                <mj-text>
+                    <!-- Your content here -->
+                    To convert this HTML to proper MJML:
+                    1. Copy your HTML code
+                    2. Go to https://mjml.io/try-it-live
+                    3. Manually convert table structures to mj-components
+                </mj-text>
+            </mj-column>
+        </mj-section>
+    </mj-body>
+</mjml>
+
+<!-- Original HTML Content: -->
+<!-- ${htmlContent.replace(/</g, '&lt;').replace(/>/g, '&gt;')} -->`;
+            
+            document.getElementById('export-title').textContent = 'Export MJML Guide';
+            document.getElementById('export-code').value = mjmlCode;
+            document.getElementById('export-modal').style.display = 'block';
         }
         
         function previewEmail() {
             if (!isEditorReady || !editor) {
-                alert('⚠️ Editor is not ready yet. Please wait a moment.');
+                alert('⚠️ Editor is not ready yet. Please wait.');
                 return;
             }
             
             try {
-                const mjmlCode = editor.getHtml();
+                const htmlCode = editor.getHtml();
                 const previewWindow = window.open('', '_blank', 'width=800,height=600');
                 previewWindow.document.write(`
                     <!DOCTYPE html>
                     <html>
                     <head>
                         <title>Email Preview</title>
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
                         <style>
-                            body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; margin: 0; }
-                            .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-                            .note { background: #e3f2fd; border-left: 4px solid #2196F3; padding: 15px; margin-bottom: 20px; }
-                            pre { background: #f5f5f5; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 12px; line-height: 1.4; }
+                            body { margin: 0; padding: 20px; background: #f4f4f4; font-family: Arial, sans-serif; }
+                            .preview-container { max-width: 800px; margin: 0 auto; }
+                            .device-toggle { background: white; padding: 15px; margin-bottom: 20px; border-radius: 8px; text-align: center; }
+                            .device-btn { background: #667eea; color: white; border: none; padding: 8px 16px; margin: 0 5px; border-radius: 4px; cursor: pointer; }
+                            .device-btn.active { background: #4CAF50; }
+                            .email-frame { background: white; border-radius: 8px; overflow: hidden; margin: 0 auto; transition: all 0.3s ease; }
+                            .desktop { max-width: 800px; }
+                            .tablet { max-width: 768px; }
+                            .mobile { max-width: 375px; }
                         </style>
                     </head>
                     <body>
-                        <div class="container">
-                            <div class="note">
-                                <strong>📧 MJML Preview</strong><br>
-                                This is your MJML code. To see the final HTML output, copy this code to 
-                                <a href="https://mjml.io/try-it-live" target="_blank">mjml.io/try-it-live</a>
+                        <div class="preview-container">
+                            <div class="device-toggle">
+                                <h3 style="margin: 0 0 15px;">📧 Email Preview</h3>
+                                <button class="device-btn active" onclick="setDevice('desktop')">🖥️ Desktop</button>
+                                <button class="device-btn" onclick="setDevice('tablet')">📱 Tablet</button>
+                                <button class="device-btn" onclick="setDevice('mobile')">📱 Mobile</button>
                             </div>
-                            <pre>${escapeHtml(mjmlCode)}</pre>
+                            <div id="email-frame" class="email-frame desktop">
+                                ${htmlCode}
+                            </div>
                         </div>
+                        
+                        <script>
+                            function setDevice(device) {
+                                const frame = document.getElementById('email-frame');
+                                const buttons = document.querySelectorAll('.device-btn');
+                                
+                                buttons.forEach(btn => btn.classList.remove('active'));
+                                event.target.classList.add('active');
+                                
+                                frame.className = 'email-frame ' + device;
+                            }
+                        </script>
                     </body>
                     </html>
                 `);
                 previewWindow.document.close();
             } catch (error) {
-                console.error('Preview error:', error);
                 alert('❌ Error generating preview: ' + error.message);
             }
         }
@@ -545,19 +904,18 @@
             const textarea = document.getElementById('export-code');
             textarea.select();
             document.execCommand('copy');
-            alert('📋 MJML code copied to clipboard!');
+            alert('📋 Code copied to clipboard!');
         }
         
-        function openMjmlLive() {
-            const mjmlCode = document.getElementById('export-code').value;
-            const encodedMjml = encodeURIComponent(mjmlCode);
-            window.open(`https://mjml.io/try-it-live?mjml=${encodedMjml}`, '_blank');
-        }
-        
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+        function downloadHTML() {
+            const htmlCode = document.getElementById('export-code').value;
+            const blob = new Blob([htmlCode], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `email-template-${Date.now()}.html`;
+            a.click();
+            URL.revokeObjectURL(url);
         }
         
         // Event Listeners
@@ -579,29 +937,13 @@
             }
         });
         
-        // Close modal when clicking outside
         window.onclick = function(event) {
             if (event.target.classList.contains('modal')) {
                 closeModal();
             }
         }
         
-        // Debug function
-        setTimeout(() => {
-            console.log('=== DEBUG INFO ===');
-            console.log('GrapesJS loaded:', typeof grapesjs !== 'undefined');
-            console.log('Editor object:', editor);
-            if (editor) {
-                console.log('MJML components available:', {
-                    'mj-text': !!editor.DomComponents.getType('mj-text'),
-                    'mj-button': !!editor.DomComponents.getType('mj-button'),
-                    'mj-section': !!editor.DomComponents.getType('mj-section'),
-                    'mj-column': !!editor.DomComponents.getType('mj-column'),
-                    'mj-image': !!editor.DomComponents.getType('mj-image')
-                });
-            }
-            console.log('===================');
-        }, 3000);
+        console.log('🎉 Professional Email Builder ready! No MJML plugin needed - this builds responsive emails using clean HTML tables.');
     </script>
 </body>
 </html>
