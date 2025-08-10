@@ -6,7 +6,7 @@
     <title>MJML Email Editor</title>
     
     <!-- GrapesJS CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/grapesjs/dist/css/grapes.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/grapesjs@0.22.12/dist/css/grapes.min.css">
     
     <!-- Custom styles -->
     <style>
@@ -221,8 +221,8 @@
     </div>
 
     <!-- Scripts -->
-    <script src="https://unpkg.com/grapesjs/dist/grapes.min.js"></script>
-    <script src="https://unpkg.com/grapesjs-mjml/dist/grapesjs-mjml.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/grapesjs@0.22.12/dist/grapes.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/grapesjs-mjml@1.0.13/dist/grapesjs-mjml.min.js"></script>
     
     <script>
         let editor;
@@ -234,74 +234,170 @@
 
         function initEditor() {
             try {
-                editor = grapesjs.init({
-                    container: '#gjs',
-                    height: '100%',
-                    width: 'auto',
-                    plugins: ['grapesjs-mjml'],
-                    pluginsOpts: {
-                        'grapesjs-mjml': {}
-                    },
-                    canvas: {
-                        styles: [
-                            'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
-                        ]
-                    },
-                    storageManager: {
-                        type: 'local',
-                        autosave: true,
-                        autoload: true
+                // Check if MJML plugin is available
+                console.log('🔍 Checking if MJML plugin is available...');
+                
+                // Wait a bit for scripts to load completely
+                setTimeout(() => {
+                    if (typeof grapesjs !== 'undefined') {
+                        console.log('✅ GrapesJS loaded successfully');
+                        
+                        // Try to initialize with MJML plugin first
+                        try {
+                            editor = grapesjs.init({
+                                container: '#gjs',
+                                height: '100%',
+                                width: 'auto',
+                                fromElement: true,
+                                plugins: ['grapesjs-mjml'],
+                                pluginsOpts: {
+                                    'grapesjs-mjml': {
+                                        // Optional MJML plugin options
+                                    }
+                                },
+                                canvas: {
+                                    styles: [
+                                        'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
+                                    ]
+                                },
+                                storageManager: {
+                                    type: 'local',
+                                    autosave: true,
+                                    autoload: true
+                                }
+                            });
+
+                            // Check if MJML components are available
+                            setTimeout(() => {
+                                const mjmlAvailable = editor.DomComponents.getType('mj-text') !== undefined;
+                                console.log('🔍 MJML components available:', mjmlAvailable);
+                                
+                                if (mjmlAvailable) {
+                                    console.log('🎉 MJML Editor loaded successfully!');
+                                    loadMJMLContent();
+                                } else {
+                                    console.warn('⚠️ MJML components not found, falling back to HTML editor');
+                                    fallbackToHTMLEditor();
+                                }
+                                
+                                hideLoading();
+                            }, 1000);
+
+                        } catch (mjmlError) {
+                            console.warn('⚠️ MJML plugin failed to load, using fallback:', mjmlError);
+                            fallbackToHTMLEditor();
+                        }
+                        
+                    } else {
+                        throw new Error('GrapesJS not loaded');
                     }
-                });
-
-                // Hide loading after editor loads
-                editor.on('load', function() {
-                    setTimeout(() => {
-                        document.getElementById('loading').style.display = 'none';
-                        console.log('✅ MJML Editor loaded successfully!');
-                    }, 1000);
-                });
-
-                // Add some default content
-                editor.setComponents(`
-                    <mj-section background-color="#f0f0f0" padding="20px">
-                        <mj-column>
-                            <mj-text align="center" font-size="28px" color="#333" font-weight="bold">
-                                Welcome to Your Email
-                            </mj-text>
-                            <mj-text align="center" font-size="16px" color="#666">
-                                Start building your amazing email by dragging components from the left panel!
-                            </mj-text>
-                            <mj-button href="#" background-color="#667eea" color="white">
-                                Get Started
-                            </mj-button>
-                        </mj-column>
-                    </mj-section>
-                    
-                    <mj-section background-color="white" padding="20px">
-                        <mj-column width="50%">
-                            <mj-image src="https://via.placeholder.com/300x200/764ba2/ffffff?text=Feature+1" alt="Feature 1" />
-                            <mj-text align="center" font-weight="bold">Amazing Feature 1</mj-text>
-                            <mj-text>Click on any element to edit it. Use the panels on the sides to customize your email.</mj-text>
-                        </mj-column>
-                        <mj-column width="50%">
-                            <mj-image src="https://via.placeholder.com/300x200/4CAF50/ffffff?text=Feature+2" alt="Feature 2" />
-                            <mj-text align="center" font-weight="bold">Amazing Feature 2</mj-text>
-                            <mj-text>Drag new components from the left panel to add more content to your email.</mj-text>
-                        </mj-column>
-                    </mj-section>
-                `);
+                }, 500);
 
             } catch (error) {
                 console.error('❌ Error initializing editor:', error);
-                document.getElementById('loading').innerHTML = `
-                    <div style="text-align: center; color: red;">
-                        <h3>❌ Error Loading Editor</h3>
-                        <p>Please refresh the page and try again.</p>
-                        <button onclick="location.reload()" class="btn btn-primary">🔄 Refresh</button>
-                    </div>
-                `;
+                showError();
             }
+        }
+
+        function loadMJMLContent() {
+            // Load MJML template
+            editor.setComponents(`
+                <mj-section background-color="#f0f0f0" padding="20px">
+                    <mj-column>
+                        <mj-text align="center" font-size="28px" color="#333" font-weight="bold">
+                            🎉 MJML Editor Loaded!
+                        </mj-text>
+                        <mj-text align="center" font-size="16px" color="#666">
+                            Drag MJML components from the left panel to build your email!
+                        </mj-text>
+                        <mj-button href="#" background-color="#667eea" color="white">
+                            Start Building
+                        </mj-button>
+                    </mj-column>
+                </mj-section>
+                
+                <mj-section background-color="white" padding="20px">
+                    <mj-column width="50%">
+                        <mj-image src="https://via.placeholder.com/300x200/764ba2/ffffff?text=MJML+Works!" alt="MJML" />
+                        <mj-text align="center" font-weight="bold">MJML Components</mj-text>
+                        <mj-text>You can now use all MJML components like mj-text, mj-button, mj-image, etc.</mj-text>
+                    </mj-column>
+                    <mj-column width="50%">
+                        <mj-image src="https://via.placeholder.com/300x200/4CAF50/ffffff?text=Responsive!" alt="Responsive" />
+                        <mj-text align="center" font-weight="bold">Responsive Design</mj-text>
+                        <mj-text>MJML automatically creates responsive email layouts that work across all email clients.</mj-text>
+                    </mj-column>
+                </mj-section>
+            `);
+        }
+
+        function fallbackToHTMLEditor() {
+            // If MJML doesn't work, create a basic HTML editor
+            editor = grapesjs.init({
+                container: '#gjs',
+                height: '100%',
+                width: 'auto',
+                plugins: [],
+                canvas: {
+                    styles: [
+                        'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
+                    ]
+                },
+                storageManager: {
+                    type: 'local',
+                    autosave: true,
+                    autoload: true
+                }
+            });
+
+            // Load HTML email template
+            editor.setComponents(`
+                <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
+                    <div style="background: #f0f0f0; padding: 20px; text-align: center;">
+                        <h1 style="color: #333; margin: 0;">⚠️ HTML Email Editor</h1>
+                        <p style="color: #666; margin: 10px 0;">MJML plugin didn't load, but you can still build HTML emails!</p>
+                        <a href="#" style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Get Started</a>
+                    </div>
+                    
+                    <div style="background: white; padding: 20px;">
+                        <table width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td width="50%" style="padding: 10px;">
+                                    <img src="https://via.placeholder.com/280x180/764ba2/ffffff?text=HTML+Email" alt="HTML" style="width: 100%; height: auto;">
+                                    <h3 style="color: #333; margin: 10px 0;">HTML Editor</h3>
+                                    <p style="color: #666; margin: 0;">You can still build email templates using HTML and CSS.</p>
+                                </td>
+                                <td width="50%" style="padding: 10px;">
+                                    <img src="https://via.placeholder.com/280x180/4CAF50/ffffff?text=Responsive" alt="Responsive" style="width: 100%; height: auto;">
+                                    <h3 style="color: #333; margin: 10px 0;">Manual Responsive</h3>
+                                    <p style="color: #666; margin: 0;">Use tables and media queries for responsive design.</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            `);
+
+            hideLoading();
+        }
+
+        function showError() {
+            document.getElementById('loading').innerHTML = `
+                <div style="text-align: center; color: red;">
+                    <h3>❌ Error Loading Editor</h3>
+                    <p>There was a problem loading the email editor.</p>
+                    <button onclick="location.reload()" class="btn btn-primary">🔄 Refresh Page</button>
+                    <p style="margin-top: 20px; font-size: 12px; color: #666;">
+                        If the problem persists, try clearing your browser cache or using an incognito window.
+                    </p>
+                </div>
+            `;
+        }
+
+        function hideLoading() {
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+            }, 1000);
         }
 
         // Export Functions
@@ -391,9 +487,24 @@
 
         // Debug function
         function checkEditor() {
+            console.log('=== DEBUGGING INFORMATION ===');
             console.log('Editor object:', editor);
             console.log('GrapesJS available:', typeof grapesjs !== 'undefined');
-            console.log('MJML plugin available:', typeof grapesjs.plugins.get('grapesjs-mjml') !== 'undefined');
+            
+            if (typeof grapesjs !== 'undefined') {
+                console.log('GrapesJS version:', grapesjs.version);
+                console.log('Available plugins:', Object.keys(grapesjs.plugins.getAll()));
+                console.log('MJML plugin available:', grapesjs.plugins.getAll()['grapesjs-mjml'] !== undefined);
+            }
+            
+            if (editor) {
+                console.log('Editor initialized:', !!editor);
+                console.log('Available component types:', Object.keys(editor.DomComponents.getTypes()));
+                console.log('mj-text component available:', !!editor.DomComponents.getType('mj-text'));
+                console.log('mj-button component available:', !!editor.DomComponents.getType('mj-button'));
+                console.log('mj-section component available:', !!editor.DomComponents.getType('mj-section'));
+            }
+            console.log('=== END DEBUG INFO ===');
         }
 
         // Call debug after 3 seconds
