@@ -64,7 +64,6 @@
         .btn-primary { background: #4CAF50; }
         .btn-secondary { background: #2196F3; }
         .btn-warning { background: #FF9800; }
-        .btn-info { background: #17a2b8; }
         
         #gjs {
             height: calc(100vh - 70px);
@@ -227,7 +226,7 @@
     <div id="export-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="export-title">Export Code</h3>
+                <h3>Export HTML Email</h3>
                 <span class="close" onclick="closeModal()">&times;</span>
             </div>
             <div class="modal-body">
@@ -284,6 +283,182 @@
         let editor;
         let isEditorReady = false;
         
+        // Email block templates
+        const EMAIL_BLOCKS = {
+            header: {
+                id: 'email-header',
+                label: '📧 Email Header',
+                category: 'Email Sections',
+                content: `<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; padding: 20px 0;">
+                    <tr>
+                        <td align="center">
+                            <table width="600" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="text-align: center; padding: 20px;">
+                                        <h1 style="color: #333; font-family: Arial, sans-serif; font-size: 28px; margin: 0;">Your Brand Name</h1>
+                                        <p style="color: #666; font-size: 16px; margin: 10px 0 0;">Welcome to our newsletter!</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>`
+            },
+            hero: {
+                id: 'hero-section',
+                label: '🌟 Hero Section',
+                category: 'Email Sections',
+                content: `<table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 0;">
+                    <tr>
+                        <td align="center">
+                            <table width="600" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="text-align: center; padding: 40px 20px;">
+                                        <h2 style="color: white; font-family: Arial, sans-serif; font-size: 32px; margin: 0 0 20px;">Amazing Offer Inside!</h2>
+                                        <p style="color: white; font-size: 18px; margin: 0 0 30px; line-height: 1.6;">Don't miss out on this incredible opportunity to save big.</p>
+                                        <a href="#" style="background-color: #4CAF50; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-size: 16px; font-weight: bold; display: inline-block;">Shop Now</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>`
+            },
+            twoColumns: {
+                id: 'two-columns',
+                label: '📋 Two Columns',
+                category: 'Email Sections',
+                content: `<table width="100%" cellpadding="0" cellspacing="0" style="background-color: white; padding: 30px 0;">
+                    <tr>
+                        <td align="center">
+                            <table width="600" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td width="280" style="padding: 20px; vertical-align: top;">
+                                        <img src="https://via.placeholder.com/260x180/764ba2/ffffff?text=Feature+1" alt="Feature 1" style="width: 100%; height: auto; border-radius: 8px;">
+                                        <h3 style="color: #333; font-family: Arial, sans-serif; font-size: 20px; margin: 15px 0 10px;">Amazing Feature 1</h3>
+                                        <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0;">Discover why thousands of customers love this incredible feature.</p>
+                                    </td>
+                                    <td width="40"></td>
+                                    <td width="280" style="padding: 20px; vertical-align: top;">
+                                        <img src="https://via.placeholder.com/260x180/4CAF50/ffffff?text=Feature+2" alt="Feature 2" style="width: 100%; height: auto; border-radius: 8px;">
+                                        <h3 style="color: #333; font-family: Arial, sans-serif; font-size: 20px; margin: 15px 0 10px;">Amazing Feature 2</h3>
+                                        <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0;">Learn about our second most popular feature and how it can help you.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>`
+            },
+            button: {
+                id: 'cta-button',
+                label: '🔘 CTA Button',
+                category: 'Email Components',
+                content: `<table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px 0;">
+                    <tr>
+                        <td align="center">
+                            <a href="#" style="background-color: #667eea; color: white; padding: 15px 40px; text-decoration: none; border-radius: 30px; font-size: 16px; font-weight: bold; display: inline-block; font-family: Arial, sans-serif;">Click Here</a>
+                        </td>
+                    </tr>
+                </table>`
+            },
+            text: {
+                id: 'text-block',
+                label: '📝 Text Block',
+                category: 'Email Components',
+                content: `<table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px 0;">
+                    <tr>
+                        <td align="center">
+                            <table width="600" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="padding: 0 20px;">
+                                        <h3 style="color: #333; font-family: Arial, sans-serif; font-size: 22px; margin: 0 0 15px;">Your Heading Here</h3>
+                                        <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">Add your content here. This text block is perfect for paragraphs, announcements, or any other text content you want to include in your email.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>`
+            },
+            image: {
+                id: 'image-block',
+                label: '🖼️ Image Block',
+                category: 'Email Components',
+                content: `<table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px 0;">
+                    <tr>
+                        <td align="center">
+                            <img src="https://via.placeholder.com/600x300/667eea/ffffff?text=Your+Image+Here" alt="Your Image" style="max-width: 600px; width: 100%; height: auto; border-radius: 8px;">
+                        </td>
+                    </tr>
+                </table>`
+            },
+            footer: {
+                id: 'email-footer',
+                label: '📄 Email Footer',
+                category: 'Email Sections',
+                content: `<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; padding: 30px 0;">
+                    <tr>
+                        <td align="center">
+                            <table width="600" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="text-align: center; padding: 20px;">
+                                        <p style="color: #666; font-size: 12px; line-height: 1.6; margin: 0 0 10px;">© 2025 Your Company Name. All rights reserved.</p>
+                                        <p style="color: #666; font-size: 12px; line-height: 1.6; margin: 0;">
+                                            <a href="#" style="color: #666; text-decoration: none;">Unsubscribe</a> | 
+                                            <a href="#" style="color: #666; text-decoration: none;">Privacy Policy</a> | 
+                                            <a href="#" style="color: #666; text-decoration: none;">Contact Us</a>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>`
+            }
+        };
+        
+        // Default email template
+        const DEFAULT_TEMPLATE = `<table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4;">
+            <tr>
+                <td align="center" style="padding: 20px 0;">
+                    <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px;">
+                        <tr>
+                            <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                                <h1 style="color: white; margin: 0; font-size: 28px;">🎉 Welcome to Our Newsletter!</h1>
+                                <p style="color: white; margin: 10px 0 0; font-size: 16px;">Professional email templates made easy</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 40px 30px;">
+                                <h2 style="color: #333; margin: 0 0 20px; font-size: 24px;">Build Professional Emails in Minutes</h2>
+                                <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 25px;">
+                                    This email builder gives you everything you need to create stunning, responsive emails that work across all email clients. 
+                                    Drag and drop components, customize styles, and export clean HTML code.
+                                </p>
+                                <table cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                    <tr>
+                                        <td>
+                                            <a href="#" style="background-color: #4CAF50; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-size: 16px; font-weight: bold; display: inline-block;">Get Started</a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 30px; text-align: center; background-color: #f8f9fa; border-radius: 0 0 8px 8px;">
+                                <p style="color: #666; font-size: 12px; margin: 0 0 10px;">© 2025 Your Company. All rights reserved.</p>
+                                <p style="color: #666; font-size: 12px; margin: 0;">
+                                    <a href="#" style="color: #666; text-decoration: none;">Unsubscribe</a> | 
+                                    <a href="#" style="color: #666; text-decoration: none;">Privacy Policy</a>
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>`;
+        
         // Initialize editor when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(initializeEditor, 300);
@@ -297,23 +472,15 @@
                     container: '#gjs',
                     height: '100%',
                     width: 'auto',
-                    
-                    // Storage
                     storageManager: {
                         type: 'local',
                         autosave: true,
                         autoload: true,
                         stepsBeforeSave: 1
                     },
-                    
-                    // Canvas settings
                     canvas: {
-                        styles: [
-                            'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
-                        ]
+                        styles: ['https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap']
                     },
-                    
-                    // Device manager for responsive design
                     deviceManager: {
                         devices: [{
                             name: 'Desktop',
@@ -328,18 +495,14 @@
                             widthMedia: '768px'
                         }]
                     },
-                    
-                    // Block manager with email components
                     blockManager: {
                         appendTo: '.gjs-blocks-c',
-                        blocks: getEmailBlocks()
+                        blocks: Object.values(EMAIL_BLOCKS)
                     }
                 });
                 
-                // Load default email template
                 loadDefaultTemplate();
                 
-                // Set up editor events
                 editor.on('load', function() {
                     console.log('✅ Professional Email Builder loaded successfully!');
                     isEditorReady = true;
@@ -352,59 +515,9 @@
             }
         }
         
-        function getEmailBlocks() {
-            return [
-                {
-                    id: 'email-header',
-                    label: '📧 Email Header',
-                    category: 'Email Sections',
-                    content: '<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; padding: 20px 0;"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0"><tr><td style="text-align: center; padding: 20px;"><h1 style="color: #333; font-family: Arial, sans-serif; font-size: 28px; margin: 0;">Your Brand Name</h1><p style="color: #666; font-size: 16px; margin: 10px 0 0;">Welcome to our newsletter!</p></td></tr></table></td></tr></table>'
-                },
-                {
-                    id: 'hero-section',
-                    label: '🌟 Hero Section',
-                    category: 'Email Sections',
-                    content: '<table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 0;"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0"><tr><td style="text-align: center; padding: 40px 20px;"><h2 style="color: white; font-family: Arial, sans-serif; font-size: 32px; margin: 0 0 20px;">Amazing Offer Inside!</h2><p style="color: white; font-size: 18px; margin: 0 0 30px; line-height: 1.6;">Don\'t miss out on this incredible opportunity to save big.</p><a href="#" style="background-color: #4CAF50; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-size: 16px; font-weight: bold; display: inline-block;">Shop Now</a></td></tr></table></td></tr></table>'
-                },
-                {
-                    id: 'two-columns',
-                    label: '📋 Two Columns',
-                    category: 'Email Sections',
-                    content: '<table width="100%" cellpadding="0" cellspacing="0" style="background-color: white; padding: 30px 0;"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0"><tr><td width="280" style="padding: 20px; vertical-align: top;"><img src="https://via.placeholder.com/260x180/764ba2/ffffff?text=Feature+1" alt="Feature 1" style="width: 100%; height: auto; border-radius: 8px;"><h3 style="color: #333; font-family: Arial, sans-serif; font-size: 20px; margin: 15px 0 10px;">Amazing Feature 1</h3><p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0;">Discover why thousands of customers love this incredible feature.</p></td><td width="40"></td><td width="280" style="padding: 20px; vertical-align: top;"><img src="https://via.placeholder.com/260x180/4CAF50/ffffff?text=Feature+2" alt="Feature 2" style="width: 100%; height: auto; border-radius: 8px;"><h3 style="color: #333; font-family: Arial, sans-serif; font-size: 20px; margin: 15px 0 10px;">Amazing Feature 2</h3><p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0;">Learn about our second most popular feature and how it can help you.</p></td></tr></table></td></tr></table>'
-                },
-                {
-                    id: 'cta-button',
-                    label: '🔘 CTA Button',
-                    category: 'Email Components',
-                    content: '<table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px 0;"><tr><td align="center"><a href="#" style="background-color: #667eea; color: white; padding: 15px 40px; text-decoration: none; border-radius: 30px; font-size: 16px; font-weight: bold; display: inline-block; font-family: Arial, sans-serif;">Click Here</a></td></tr></table>'
-                },
-                {
-                    id: 'text-block',
-                    label: '📝 Text Block',
-                    category: 'Email Components',
-                    content: '<table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px 0;"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0"><tr><td style="padding: 0 20px;"><h3 style="color: #333; font-family: Arial, sans-serif; font-size: 22px; margin: 0 0 15px;">Your Heading Here</h3><p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">Add your content here. This text block is perfect for paragraphs, announcements, or any other text content you want to include in your email.</p></td></tr></table></td></tr></table>'
-                },
-                {
-                    id: 'image-block',
-                    label: '🖼️ Image Block',
-                    category: 'Email Components',
-                    content: '<table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px 0;"><tr><td align="center"><img src="https://via.placeholder.com/600x300/667eea/ffffff?text=Your+Image+Here" alt="Your Image" style="max-width: 600px; width: 100%; height: auto; border-radius: 8px;"></td></tr></table>'
-                },
-                {
-                    id: 'email-footer',
-                    label: '📄 Email Footer',
-                    category: 'Email Sections',
-                    content: '<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; padding: 30px 0;"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0"><tr><td style="text-align: center; padding: 20px;"><p style="color: #666; font-size: 12px; line-height: 1.6; margin: 0 0 10px;">© 2025 Your Company Name. All rights reserved.</p><p style="color: #666; font-size: 12px; line-height: 1.6; margin: 0;"><a href="#" style="color: #666; text-decoration: none;">Unsubscribe</a> | <a href="#" style="color: #666; text-decoration: none;">Privacy Policy</a> | <a href="#" style="color: #666; text-decoration: none;">Contact Us</a></p></td></tr></table></td></tr></table>'
-                }
-            ];
-        }
-        
         function loadDefaultTemplate() {
-            const defaultTemplate = '<table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4;"><tr><td align="center" style="padding: 20px 0;"><table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px 8px 0 0;"><tr><td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;"><h1 style="color: white; margin: 0; font-size: 28px;">🎉 Welcome to Our Newsletter!</h1><p style="color: white; margin: 10px 0 0; font-size: 16px;">Professional email templates made easy</p></td></tr></table><table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff;"><tr><td style="padding: 40px 30px;"><h2 style="color: #333; margin: 0 0 20px; font-size: 24px;">Build Professional Emails in Minutes</h2><p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 25px;">This email builder gives you everything you need to create stunning, responsive emails that work across all email clients. Drag and drop components, customize styles, and export clean HTML code.</p><table cellpadding="0" cellspacing="0" style="margin: 30px 0;"><tr><td><a href="#" style="background-color: #4CAF50; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-size: 16px; font-weight: bold; display: inline-block;">Get Started</a></td></tr></table></td></tr></table><table width="600" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; border-radius: 0 0 8px 8px;"><tr><td style="padding: 30px; text-align: center;"><p style="color: #666; font-size: 12px; margin: 0 0 10px;">© 2025 Your Company. All rights reserved.</p><p style="color: #666; font-size: 12px; margin: 0;"><a href="#" style="color: #666; text-decoration: none;">Unsubscribe</a> | <a href="#" style="color: #666; text-decoration: none;">Privacy Policy</a></p></td></tr></table></td></tr></table>';
-            
-            // Only load default if no saved content
             if (!localStorage.getItem('gjs-components')) {
-                editor.setComponents(defaultTemplate);
+                editor.setComponents(DEFAULT_TEMPLATE);
             }
         }
         
@@ -419,7 +532,6 @@
             loading.innerHTML = '<div style="text-align: center; color: #e74c3c;"><h3>❌ Error Loading Editor</h3><p>' + message + '</p><button onclick="location.reload()" class="btn btn-primary" style="margin-top: 15px;">🔄 Retry</button></div>';
         }
         
-        // Export Functions
         function exportEmail() {
             if (!isEditorReady || !editor) {
                 alert('⚠️ Editor is not ready yet. Please wait.');
@@ -429,7 +541,6 @@
             try {
                 const htmlCode = '<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>Your Email</title>\n</head>\n<body style="margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">\n' + editor.getHtml() + '\n</body>\n</html>';
                 
-                document.getElementById('export-title').textContent = 'Export HTML Email';
                 document.getElementById('export-code').value = htmlCode;
                 document.getElementById('export-modal').style.display = 'block';
             } catch (error) {
@@ -446,7 +557,48 @@
             try {
                 const htmlCode = editor.getHtml();
                 const previewWindow = window.open('', '_blank', 'width=800,height=600');
-                previewWindow.document.write('<!DOCTYPE html><html><head><title>Email Preview</title><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>body { margin: 0; padding: 20px; background: #f4f4f4; font-family: Arial, sans-serif; }.preview-container { max-width: 800px; margin: 0 auto; }.device-toggle { background: white; padding: 15px; margin-bottom: 20px; border-radius: 8px; text-align: center; }.device-btn { background: #667eea; color: white; border: none; padding: 8px 16px; margin: 0 5px; border-radius: 4px; cursor: pointer; }.device-btn.active { background: #4CAF50; }.email-frame { background: white; border-radius: 8px; overflow: hidden; margin: 0 auto; transition: all 0.3s ease; }.desktop { max-width: 800px; }.tablet { max-width: 768px; }.mobile { max-width: 375px; }</style></head><body><div class="preview-container"><div class="device-toggle"><h3 style="margin: 0 0 15px;">📧 Email Preview</h3><button class="device-btn active" onclick="setDevice(\'desktop\')">🖥️ Desktop</button><button class="device-btn" onclick="setDevice(\'tablet\')">📱 Tablet</button><button class="device-btn" onclick="setDevice(\'mobile\')">📱 Mobile</button></div><div id="email-frame" class="email-frame desktop">' + htmlCode + '</div></div><script>function setDevice(device) { const frame = document.getElementById(\'email-frame\'); const buttons = document.querySelectorAll(\'.device-btn\'); buttons.forEach(btn => btn.classList.remove(\'active\')); event.target.classList.add(\'active\'); frame.className = \'email-frame \' + device; }</script></body></html>');
+                const previewContent = `<!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Email Preview</title>
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style>
+                        body { margin: 0; padding: 20px; background: #f4f4f4; font-family: Arial, sans-serif; }
+                        .preview-container { max-width: 800px; margin: 0 auto; }
+                        .device-toggle { background: white; padding: 15px; margin-bottom: 20px; border-radius: 8px; text-align: center; }
+                        .device-btn { background: #667eea; color: white; border: none; padding: 8px 16px; margin: 0 5px; border-radius: 4px; cursor: pointer; }
+                        .device-btn.active { background: #4CAF50; }
+                        .email-frame { background: white; border-radius: 8px; overflow: hidden; margin: 0 auto; transition: all 0.3s ease; }
+                        .desktop { max-width: 800px; }
+                        .tablet { max-width: 768px; }
+                        .mobile { max-width: 375px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="preview-container">
+                        <div class="device-toggle">
+                            <h3 style="margin: 0 0 15px;">📧 Email Preview</h3>
+                            <button class="device-btn active" onclick="setDevice('desktop')">🖥️ Desktop</button>
+                            <button class="device-btn" onclick="setDevice('tablet')">📱 Tablet</button>
+                            <button class="device-btn" onclick="setDevice('mobile')">📱 Mobile</button>
+                        </div>
+                        <div id="email-frame" class="email-frame desktop">
+                            ${htmlCode}
+                        </div>
+                    </div>
+                    <script>
+                        function setDevice(device) {
+                            const frame = document.getElementById('email-frame');
+                            const buttons = document.querySelectorAll('.device-btn');
+                            buttons.forEach(btn => btn.classList.remove('active'));
+                            event.target.classList.add('active');
+                            frame.className = 'email-frame ' + device;
+                        }
+                    </script>
+                </body>
+                </html>`;
+                
+                previewWindow.document.write(previewContent);
                 previewWindow.document.close();
             } catch (error) {
                 alert('❌ Error generating preview: ' + error.message);
@@ -485,15 +637,12 @@
         // Event Listeners
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey || e.metaKey) {
-                switch(e.key) {
-                    case 'e':
-                        e.preventDefault();
-                        exportEmail();
-                        break;
-                    case 'p':
-                        e.preventDefault();
-                        previewEmail();
-                        break;
+                if (e.key === 'e') {
+                    e.preventDefault();
+                    exportEmail();
+                } else if (e.key === 'p') {
+                    e.preventDefault();
+                    previewEmail();
                 }
             }
             if (e.key === 'Escape') {
