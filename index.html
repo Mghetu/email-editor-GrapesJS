@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Email Builder</title>
+    <title>Professional MJML Email Editor</title>
     
-    <!-- GrapesJS CSS -->
-    <link href="https://unpkg.com/grapesjs@0.21.10/dist/css/grapes.min.css" rel="stylesheet"/>
+    <!-- GrapesJS Core CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/grapesjs/dist/css/grapes.min.css">
+    
+    <!-- GrapesJS MJML Plugin CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/grapesjs-mjml@1.0.6/dist/grapesjs-mjml.min.css">
     
     <!-- Custom Styles -->
     <style>
@@ -15,648 +18,814 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: #f5f5f5;
-            height: 100vh;
-            overflow: hidden;
-        }
-        
-        .header {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Styles */
+        .editor-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 1000;
+            z-index: 100;
         }
-        
-        .header h1 {
-            font-size: 1.5rem;
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .brand-name {
+            font-size: 20px;
             font-weight: 600;
-            margin: 0;
+            color: #2d3748;
         }
-        
-        .header-actions {
+
+        .header-controls {
             display: flex;
             gap: 10px;
+            align-items: center;
         }
-        
-        .btn {
-            padding: 8px 16px;
+
+        .device-selector {
+            display: flex;
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .device-btn {
+            padding: 8px 12px;
+            background: transparent;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
+            color: #4a5568;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .device-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .device-btn.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
             font-weight: 500;
             transition: all 0.3s ease;
-            color: white;
-        }
-        
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        
-        .btn-primary { background: #4CAF50; }
-        .btn-secondary { background: #2196F3; }
-        .btn-warning { background: #FF9800; }
-        
-        #gjs {
-            height: calc(100vh - 70px);
-            width: 100%;
-        }
-        
-        /* Loading Overlay */
-        .loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.95);
             display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
-            z-index: 9999;
+            gap: 8px;
         }
-        
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
+
+        .btn-secondary {
+            background: #f7fafc;
+            color: #4a5568;
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
         }
-        
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 10000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-        }
-        
-        .modal-content {
-            background-color: white;
-            margin: 5% auto;
-            padding: 0;
-            border-radius: 8px;
-            width: 80%;
-            max-width: 800px;
-            max-height: 80vh;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-        }
-        
-        .modal-header {
+
+        .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 15px 20px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+        }
+
+        /* Main Editor Container */
+        .editor-container {
+            flex: 1;
+            display: flex;
+            height: calc(100vh - 64px);
+            background: white;
+            position: relative;
+        }
+
+        #gjs {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* GrapesJS Customizations */
+        .gjs-cv-canvas {
+            background: #f7fafc;
+            top: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .gjs-pn-panel {
+            background: white;
+        }
+
+        .gjs-pn-commands, .gjs-pn-options {
+            background: #f7fafc;
+        }
+
+        .gjs-block {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .gjs-block:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .gjs-block__media {
+            background: linear-gradient(135deg, #f7fafc 0%, #e2e8f0 100%);
+        }
+
+        .gjs-title {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px;
+            font-weight: 500;
+        }
+
+        /* Export Modal */
+        .export-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .export-modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .modal-body {
             padding: 20px;
             max-height: 60vh;
             overflow-y: auto;
         }
-        
-        .close {
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-            cursor: pointer;
+
+        .code-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
         }
-        
-        #export-code {
-            width: 100%;
-            height: 400px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 15px;
-            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-            font-size: 13px;
-            background: #f8f9fa;
-            resize: vertical;
-            margin-bottom: 15px;
-        }
-        
-        /* GrapesJS Custom Styling */
-        .gjs-one-bg { background: #2c3e50; }
-        .gjs-two-color { color: #ecf0f1; }
-        .gjs-three-bg { background: #34495e; }
-        .gjs-four-color { color: #ecf0f1; }
-        
-        .gjs-blocks-c {
-            background: #ecf0f1;
-            padding: 10px;
-        }
-        
-        .gjs-block {
-            background: white;
-            border-radius: 4px;
-            margin: 5px 0;
-            padding: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: 1px solid #e0e0e0;
-        }
-        
-        .gjs-block:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            border-color: #3498db;
-        }
-        
-        .success-banner {
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            color: white;
+
+        .tab-btn {
             padding: 10px 20px;
-            text-align: center;
+            background: #f7fafc;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
             font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .code-container {
+            background: #1a202c;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .code-content {
+            color: #e2e8f0;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            background: #4a5568;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: #2d3748;
+        }
+
+        .copy-btn.copied {
+            background: #48bb78;
+        }
+
+        /* Notification Toast */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-left: 4px solid #48bb78;
+        }
+
+        .notification.info {
+            border-left: 4px solid #4299e1;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-controls {
+                flex-wrap: wrap;
+            }
+            
+            .device-selector {
+                order: 2;
+                width: 100%;
+                justify-content: center;
+                margin-top: 10px;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Loading Screen -->
-    <div id="loading" class="loading">
-        <div class="spinner"></div>
-        <h3>Loading Email Builder</h3>
-        <p>Setting up your professional email editor...</p>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h2>Loading Email Editor...</h2>
+        </div>
     </div>
-    
-    <!-- Success Banner -->
-    <div class="success-banner">
-        🎉 Professional Email Builder Loaded Successfully! Build responsive emails with drag & drop!
-    </div>
-    
+
     <!-- Header -->
-    <header class="header">
-        <h1>📧 Professional Email Builder</h1>
-        <div class="header-actions">
-            <button class="btn btn-warning" onclick="previewEmail()">👁️ Preview</button>
-            <button class="btn btn-primary" onclick="exportEmail()">💾 Export HTML</button>
-            <button class="btn btn-secondary" onclick="showHelp()">❓ Help</button>
+    <header class="editor-header">
+        <div class="brand">
+            <div class="brand-logo">✉</div>
+            <div class="brand-name">MJML Email Builder</div>
+        </div>
+        <div class="header-controls">
+            <div class="device-selector">
+                <button class="device-btn active" onclick="setDevice('desktop')" data-device="desktop">
+                    <span>💻</span> Desktop
+                </button>
+                <button class="device-btn" onclick="setDevice('tablet')" data-device="tablet">
+                    <span>📱</span> Tablet
+                </button>
+                <button class="device-btn" onclick="setDevice('mobile')" data-device="mobile">
+                    <span>📱</span> Mobile
+                </button>
+            </div>
+            <button class="action-btn btn-secondary" onclick="clearCanvas()">
+                <span>🗑️</span> Clear
+            </button>
+            <button class="action-btn btn-primary" onclick="showExportModal()">
+                <span>📤</span> Export Code
+            </button>
+            <button class="action-btn btn-success" onclick="previewEmail()">
+                <span>👁️</span> Preview
+            </button>
         </div>
     </header>
-    
-    <!-- Editor Container -->
-    <div id="gjs"></div>
-    
+
+    <!-- Main Editor -->
+    <div class="editor-container">
+        <div id="gjs"></div>
+    </div>
+
     <!-- Export Modal -->
-    <div id="export-modal" class="modal">
+    <div class="export-modal" id="exportModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Export HTML Email</h3>
-                <span class="close" onclick="closeModal()">&times;</span>
+                <h2>Export Email Code</h2>
+                <button onclick="closeExportModal()" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;">×</button>
             </div>
             <div class="modal-body">
-                <div style="background: #e8f5e8; padding: 15px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #4CAF50;">
-                    <strong>✅ Email code ready!</strong> This HTML is optimized for email clients and fully responsive.
+                <div class="code-tabs">
+                    <button class="tab-btn active" onclick="switchTab('mjml')">MJML Code</button>
+                    <button class="tab-btn" onclick="switchTab('html')">HTML Code</button>
                 </div>
-                <textarea id="export-code" readonly placeholder="Your email code will appear here..."></textarea>
-                <button class="btn btn-primary" onclick="copyCode()">📋 Copy to Clipboard</button>
-                <button class="btn btn-secondary" onclick="downloadHTML()" style="margin-left: 10px;">💾 Download HTML</button>
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode()">Copy Code</button>
+                    <pre class="code-content" id="codeContent"></pre>
+                </div>
             </div>
         </div>
     </div>
-    
-    <!-- Help Modal -->
-    <div id="help-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>How to Use This Email Builder</h3>
-                <span class="close" onclick="closeModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <h4>🚀 Building Your Email:</h4>
-                <ul style="margin: 10px 0 20px 20px; line-height: 1.6;">
-                    <li><strong>Drag & Drop:</strong> Use the left panel to drag components into your email</li>
-                    <li><strong>Edit Content:</strong> Double-click text to edit, click elements to style them</li>
-                    <li><strong>Add Images:</strong> Use the image block and replace with your URLs</li>
-                    <li><strong>Style Elements:</strong> Use the right panel to customize colors, fonts, spacing</li>
-                    <li><strong>Preview:</strong> Test your email in different screen sizes</li>
-                </ul>
-                
-                <h4>📧 Using Your Email:</h4>
-                <ol style="margin: 10px 0 20px 20px; line-height: 1.6;">
-                    <li>Click "Export HTML" to get your email code</li>
-                    <li>Copy the HTML code</li>
-                    <li>Use it in your email marketing platform (Mailchimp, SendGrid, etc.)</li>
-                    <li>Or send directly through your email system</li>
-                </ol>
-                
-                <h4>⌨️ Keyboard Shortcuts:</h4>
-                <ul style="margin: 10px 0 0 20px; line-height: 1.6;">
-                    <li><strong>Ctrl+E:</strong> Export email</li>
-                    <li><strong>Ctrl+P:</strong> Preview email</li>
-                    <li><strong>Ctrl+Z:</strong> Undo</li>
-                    <li><strong>Ctrl+Y:</strong> Redo</li>
-                </ul>
-            </div>
-        </div>
+
+    <!-- Notification Toast -->
+    <div class="notification" id="notification">
+        <span id="notificationText"></span>
     </div>
+
+    <!-- GrapesJS Core -->
+    <script src="https://unpkg.com/grapesjs"></script>
     
-    <!-- Scripts -->
-    <script src="https://unpkg.com/grapesjs@0.21.10/dist/grapes.min.js"></script>
-    
+    <!-- GrapesJS MJML Plugin -->
+    <script src="https://unpkg.com/grapesjs-mjml@1.0.6/dist/grapesjs-mjml.min.js"></script>
+
     <script>
         let editor;
-        let isEditorReady = false;
-        
-        // Email block templates
-        const EMAIL_BLOCKS = {
-            header: {
-                id: 'email-header',
-                label: '📧 Email Header',
-                category: 'Email Sections',
-                content: `<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; padding: 20px 0;">
-                    <tr>
-                        <td align="center">
-                            <table width="600" cellpadding="0" cellspacing="0">
-                                <tr>
-                                    <td style="text-align: center; padding: 20px;">
-                                        <h1 style="color: #333; font-family: Arial, sans-serif; font-size: 28px; margin: 0;">Your Brand Name</h1>
-                                        <p style="color: #666; font-size: 16px; margin: 10px 0 0;">Welcome to our newsletter!</p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>`
-            },
-            hero: {
-                id: 'hero-section',
-                label: '🌟 Hero Section',
-                category: 'Email Sections',
-                content: `<table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 0;">
-                    <tr>
-                        <td align="center">
-                            <table width="600" cellpadding="0" cellspacing="0">
-                                <tr>
-                                    <td style="text-align: center; padding: 40px 20px;">
-                                        <h2 style="color: white; font-family: Arial, sans-serif; font-size: 32px; margin: 0 0 20px;">Amazing Offer Inside!</h2>
-                                        <p style="color: white; font-size: 18px; margin: 0 0 30px; line-height: 1.6;">Don't miss out on this incredible opportunity to save big.</p>
-                                        <a href="#" style="background-color: #4CAF50; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-size: 16px; font-weight: bold; display: inline-block;">Shop Now</a>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>`
-            },
-            twoColumns: {
-                id: 'two-columns',
-                label: '📋 Two Columns',
-                category: 'Email Sections',
-                content: `<table width="100%" cellpadding="0" cellspacing="0" style="background-color: white; padding: 30px 0;">
-                    <tr>
-                        <td align="center">
-                            <table width="600" cellpadding="0" cellspacing="0">
-                                <tr>
-                                    <td width="280" style="padding: 20px; vertical-align: top;">
-                                        <img src="https://via.placeholder.com/260x180/764ba2/ffffff?text=Feature+1" alt="Feature 1" style="width: 100%; height: auto; border-radius: 8px;">
-                                        <h3 style="color: #333; font-family: Arial, sans-serif; font-size: 20px; margin: 15px 0 10px;">Amazing Feature 1</h3>
-                                        <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0;">Discover why thousands of customers love this incredible feature.</p>
-                                    </td>
-                                    <td width="40"></td>
-                                    <td width="280" style="padding: 20px; vertical-align: top;">
-                                        <img src="https://via.placeholder.com/260x180/4CAF50/ffffff?text=Feature+2" alt="Feature 2" style="width: 100%; height: auto; border-radius: 8px;">
-                                        <h3 style="color: #333; font-family: Arial, sans-serif; font-size: 20px; margin: 15px 0 10px;">Amazing Feature 2</h3>
-                                        <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0;">Learn about our second most popular feature and how it can help you.</p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>`
-            },
-            button: {
-                id: 'cta-button',
-                label: '🔘 CTA Button',
-                category: 'Email Components',
-                content: `<table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px 0;">
-                    <tr>
-                        <td align="center">
-                            <a href="#" style="background-color: #667eea; color: white; padding: 15px 40px; text-decoration: none; border-radius: 30px; font-size: 16px; font-weight: bold; display: inline-block; font-family: Arial, sans-serif;">Click Here</a>
-                        </td>
-                    </tr>
-                </table>`
-            },
-            text: {
-                id: 'text-block',
-                label: '📝 Text Block',
-                category: 'Email Components',
-                content: `<table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px 0;">
-                    <tr>
-                        <td align="center">
-                            <table width="600" cellpadding="0" cellspacing="0">
-                                <tr>
-                                    <td style="padding: 0 20px;">
-                                        <h3 style="color: #333; font-family: Arial, sans-serif; font-size: 22px; margin: 0 0 15px;">Your Heading Here</h3>
-                                        <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0;">Add your content here. This text block is perfect for paragraphs, announcements, or any other text content you want to include in your email.</p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>`
-            },
-            image: {
-                id: 'image-block',
-                label: '🖼️ Image Block',
-                category: 'Email Components',
-                content: `<table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px 0;">
-                    <tr>
-                        <td align="center">
-                            <img src="https://via.placeholder.com/600x300/667eea/ffffff?text=Your+Image+Here" alt="Your Image" style="max-width: 600px; width: 100%; height: auto; border-radius: 8px;">
-                        </td>
-                    </tr>
-                </table>`
-            },
-            footer: {
-                id: 'email-footer',
-                label: '📄 Email Footer',
-                category: 'Email Sections',
-                content: `<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; padding: 30px 0;">
-                    <tr>
-                        <td align="center">
-                            <table width="600" cellpadding="0" cellspacing="0">
-                                <tr>
-                                    <td style="text-align: center; padding: 20px;">
-                                        <p style="color: #666; font-size: 12px; line-height: 1.6; margin: 0 0 10px;">© 2025 Your Company Name. All rights reserved.</p>
-                                        <p style="color: #666; font-size: 12px; line-height: 1.6; margin: 0;">
-                                            <a href="#" style="color: #666; text-decoration: none;">Unsubscribe</a> | 
-                                            <a href="#" style="color: #666; text-decoration: none;">Privacy Policy</a> | 
-                                            <a href="#" style="color: #666; text-decoration: none;">Contact Us</a>
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>`
-            }
-        };
-        
-        // Default email template
-        const DEFAULT_TEMPLATE = `<table width="100%" cellpadding="0" cellspacing="0" style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4;">
-            <tr>
-                <td align="center" style="padding: 20px 0;">
-                    <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px;">
-                        <tr>
-                            <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-                                <h1 style="color: white; margin: 0; font-size: 28px;">🎉 Welcome to Our Newsletter!</h1>
-                                <p style="color: white; margin: 10px 0 0; font-size: 16px;">Professional email templates made easy</p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 40px 30px;">
-                                <h2 style="color: #333; margin: 0 0 20px; font-size: 24px;">Build Professional Emails in Minutes</h2>
-                                <p style="color: #666; font-size: 16px; line-height: 1.6; margin: 0 0 25px;">
-                                    This email builder gives you everything you need to create stunning, responsive emails that work across all email clients. 
-                                    Drag and drop components, customize styles, and export clean HTML code.
-                                </p>
-                                <table cellpadding="0" cellspacing="0" style="margin: 30px 0;">
-                                    <tr>
-                                        <td>
-                                            <a href="#" style="background-color: #4CAF50; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-size: 16px; font-weight: bold; display: inline-block;">Get Started</a>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 30px; text-align: center; background-color: #f8f9fa; border-radius: 0 0 8px 8px;">
-                                <p style="color: #666; font-size: 12px; margin: 0 0 10px;">© 2025 Your Company. All rights reserved.</p>
-                                <p style="color: #666; font-size: 12px; margin: 0;">
-                                    <a href="#" style="color: #666; text-decoration: none;">Unsubscribe</a> | 
-                                    <a href="#" style="color: #666; text-decoration: none;">Privacy Policy</a>
-                                </p>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>`;
-        
-        // Initialize editor when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(initializeEditor, 300);
-        });
-        
-        function initializeEditor() {
-            try {
-                console.log('🚀 Initializing Professional Email Builder...');
-                
-                editor = grapesjs.init({
-                    container: '#gjs',
-                    height: '100%',
-                    width: 'auto',
-                    storageManager: {
-                        type: 'local',
-                        autosave: true,
-                        autoload: true,
-                        stepsBeforeSave: 1
-                    },
-                    canvas: {
-                        styles: ['https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap']
-                    },
-                    deviceManager: {
-                        devices: [{
+        let currentCodeType = 'mjml';
+        let autoSaveInterval;
+
+        // Initialize Editor
+        function initEditor() {
+            editor = grapesjs.init({
+                container: '#gjs',
+                height: '100%',
+                width: 'auto',
+                plugins: ['grapesjs-mjml'],
+                pluginsOpts: {
+                    'grapesjs-mjml': {
+                        // MJML options
+                        resetBlocks: false,
+                        columnsPadding: '10px 0',
+                        categoryLabel: 'Email Blocks',
+                        modalTitleImport: 'Import MJML',
+                        modalBtnImport: 'Import',
+                        modalLabelImport: '',
+                        modalTitleExport: 'Export MJML',
+                        modalBtnExport: 'Export',
+                        modalLabelExport: '',
+                        overwriteExport: 1,
+                        preMjml: '<mjml><mj-body>',
+                        postMjml: '</mj-body></mjml>',
+                        resetStyleManager: false,
+                    }
+                },
+                storageManager: {
+                    type: 'local',
+                    autosave: true,
+                    autoload: true,
+                    stepsBeforeSave: 1,
+                    options: {
+                        local: {
+                            key: 'gjsProject'
+                        }
+                    }
+                },
+                deviceManager: {
+                    devices: [
+                        {
                             name: 'Desktop',
-                            width: ''
-                        }, {
+                            width: '1200px',
+                        },
+                        {
                             name: 'Tablet',
                             width: '768px',
-                            widthMedia: '992px'
-                        }, {
+                        },
+                        {
                             name: 'Mobile',
-                            width: '320px',
-                            widthMedia: '768px'
-                        }]
-                    },
-                    blockManager: {
-                        appendTo: '.gjs-blocks-c',
-                        blocks: Object.values(EMAIL_BLOCKS)
-                    }
-                });
-                
-                loadDefaultTemplate();
-                
-                editor.on('load', function() {
-                    console.log('✅ Professional Email Builder loaded successfully!');
-                    isEditorReady = true;
-                    hideLoading();
-                });
-                
-            } catch (error) {
-                console.error('❌ Failed to initialize editor:', error);
-                showError(error.message);
-            }
-        }
-        
-        function loadDefaultTemplate() {
-            if (!localStorage.getItem('gjs-components')) {
-                editor.setComponents(DEFAULT_TEMPLATE);
-            }
-        }
-        
-        function hideLoading() {
-            setTimeout(function() {
-                document.getElementById('loading').style.display = 'none';
-            }, 1000);
-        }
-        
-        function showError(message) {
-            const loading = document.getElementById('loading');
-            loading.innerHTML = '<div style="text-align: center; color: #e74c3c;"><h3>❌ Error Loading Editor</h3><p>' + message + '</p><button onclick="location.reload()" class="btn btn-primary" style="margin-top: 15px;">🔄 Retry</button></div>';
-        }
-        
-        function exportEmail() {
-            if (!isEditorReady || !editor) {
-                alert('⚠️ Editor is not ready yet. Please wait.');
-                return;
-            }
-            
-            try {
-                const htmlCode = '<!DOCTYPE html>\n<html>\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>Your Email</title>\n</head>\n<body style="margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">\n' + editor.getHtml() + '\n</body>\n</html>';
-                
-                document.getElementById('export-code').value = htmlCode;
-                document.getElementById('export-modal').style.display = 'block';
-            } catch (error) {
-                alert('❌ Error exporting email: ' + error.message);
-            }
-        }
-        
-        function previewEmail() {
-            if (!isEditorReady || !editor) {
-                alert('⚠️ Editor is not ready yet. Please wait.');
-                return;
-            }
-            
-            try {
-                const htmlCode = editor.getHtml();
-                const previewWindow = window.open('', '_blank', 'width=800,height=600');
-                const previewContent = `<!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Email Preview</title>
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <style>
-                        body { margin: 0; padding: 20px; background: #f4f4f4; font-family: Arial, sans-serif; }
-                        .preview-container { max-width: 800px; margin: 0 auto; }
-                        .device-toggle { background: white; padding: 15px; margin-bottom: 20px; border-radius: 8px; text-align: center; }
-                        .device-btn { background: #667eea; color: white; border: none; padding: 8px 16px; margin: 0 5px; border-radius: 4px; cursor: pointer; }
-                        .device-btn.active { background: #4CAF50; }
-                        .email-frame { background: white; border-radius: 8px; overflow: hidden; margin: 0 auto; transition: all 0.3s ease; }
-                        .desktop { max-width: 800px; }
-                        .tablet { max-width: 768px; }
-                        .mobile { max-width: 375px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="preview-container">
-                        <div class="device-toggle">
-                            <h3 style="margin: 0 0 15px;">📧 Email Preview</h3>
-                            <button class="device-btn active" onclick="setDevice('desktop')">🖥️ Desktop</button>
-                            <button class="device-btn" onclick="setDevice('tablet')">📱 Tablet</button>
-                            <button class="device-btn" onclick="setDevice('mobile')">📱 Mobile</button>
-                        </div>
-                        <div id="email-frame" class="email-frame desktop">
-                            ${htmlCode}
-                        </div>
-                    </div>
-                    <script>
-                        function setDevice(device) {
-                            const frame = document.getElementById('email-frame');
-                            const buttons = document.querySelectorAll('.device-btn');
-                            buttons.forEach(btn => btn.classList.remove('active'));
-                            event.target.classList.add('active');
-                            frame.className = 'email-frame ' + device;
+                            width: '375px',
                         }
-                    </script>
-                </body>
-                </html>`;
-                
-                previewWindow.document.write(previewContent);
-                previewWindow.document.close();
-            } catch (error) {
-                alert('❌ Error generating preview: ' + error.message);
-            }
-        }
-        
-        function showHelp() {
-            document.getElementById('help-modal').style.display = 'block';
-        }
-        
-        function closeModal() {
-            const modals = document.querySelectorAll('.modal');
-            for (let i = 0; i < modals.length; i++) {
-                modals[i].style.display = 'none';
-            }
-        }
-        
-        function copyCode() {
-            const textarea = document.getElementById('export-code');
-            textarea.select();
-            document.execCommand('copy');
-            alert('📋 Code copied to clipboard!');
-        }
-        
-        function downloadHTML() {
-            const htmlCode = document.getElementById('export-code').value;
-            const blob = new Blob([htmlCode], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'email-template-' + Date.now() + '.html';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-        
-        // Event Listeners
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey || e.metaKey) {
-                if (e.key === 'e') {
-                    e.preventDefault();
-                    exportEmail();
-                } else if (e.key === 'p') {
-                    e.preventDefault();
-                    previewEmail();
+                    ]
+                },
+                panels: {
+                    defaults: [
+                        {
+                            id: 'panel-devices',
+                            el: '.panel__devices',
+                            buttons: [{
+                                id: 'device-desktop',
+                                label: 'Desktop',
+                                command: 'set-device-desktop',
+                                active: true,
+                                togglable: false,
+                            }, {
+                                id: 'device-tablet',
+                                label: 'Tablet',
+                                command: 'set-device-tablet',
+                                togglable: false,
+                            }, {
+                                id: 'device-mobile',
+                                label: 'Mobile',
+                                command: 'set-device-mobile',
+                                togglable: false,
+                            }],
+                        }
+                    ]
+                },
+                canvas: {
+                    styles: [
+                        'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
+                    ]
                 }
+            });
+
+            // Add custom blocks
+            addCustomBlocks();
+
+            // Setup auto-save
+            setupAutoSave();
+
+            // Add commands
+            setupCommands();
+
+            // Load saved project or default template
+            loadProject();
+
+            // Hide loading screen
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loadingScreen').style.display = 'none';
+                }, 500);
+            }, 1500);
+        }
+
+        // Add custom email blocks
+        function addCustomBlocks() {
+            const blockManager = editor.BlockManager;
+
+            // Hero Section
+            blockManager.add('hero-section', {
+                label: 'Hero Section',
+                category: 'Custom Sections',
+                content: `
+                    <mj-section background-color="#f0f0f0" padding="50px 0">
+                        <mj-column>
+                            <mj-text align="center" font-size="36px" font-weight="bold" color="#333333">
+                                Welcome to Our Newsletter
+                            </mj-text>
+                            <mj-text align="center" font-size="18px" color="#666666" padding-top="20px">
+                                Stay updated with our latest news and offers
+                            </mj-text>
+                            <mj-button background-color="#667eea" color="white" padding-top="30px" href="#">
+                                Get Started
+                            </mj-button>
+                        </mj-column>
+                    </mj-section>
+                `,
+                attributes: {
+                    class: 'gjs-fonts gjs-f-hero'
+                }
+            });
+
+            // Feature Cards
+            blockManager.add('feature-cards', {
+                label: 'Feature Cards',
+                category: 'Custom Sections',
+                content: `
+                    <mj-section padding="40px 0">
+                        <mj-column width="33.33%">
+                            <mj-image src="https://via.placeholder.com/100" width="100px" />
+                            <mj-text align="center" font-size="20px" font-weight="bold" padding-top="20px">
+                                Feature One
+                            </mj-text>
+                            <mj-text align="center" font-size="14px" color="#666666">
+                                Description of your amazing feature
+                            </mj-text>
+                        </mj-column>
+                        <mj-column width="33.33%">
+                            <mj-image src="https://via.placeholder.com/100" width="100px" />
+                            <mj-text align="center" font-size="20px" font-weight="bold" padding-top="20px">
+                                Feature Two
+                            </mj-text>
+                            <mj-text align="center" font-size="14px" color="#666666">
+                                Description of your amazing feature
+                            </mj-text>
+                        </mj-column>
+                        <mj-column width="33.33%">
+                            <mj-image src="https://via.placeholder.com/100" width="100px" />
+                            <mj-text align="center" font-size="20px" font-weight="bold" padding-top="20px">
+                                Feature Three
+                            </mj-text>
+                            <mj-text align="center" font-size="14px" color="#666666">
+                                Description of your amazing feature
+                            </mj-text>
+                        </mj-column>
+                    </mj-section>
+                `,
+                attributes: {
+                    class: 'gjs-fonts gjs-f-b3'
+                }
+            });
+
+            // Call to Action
+            blockManager.add('cta-section', {
+                label: 'CTA Section',
+                category: 'Custom Sections',
+                content: `
+                    <mj-section background-color="#667eea" padding="40px 0">
+                        <mj-column>
+                            <mj-text align="center" font-size="28px" font-weight="bold" color="white">
+                                Ready to Get Started?
+                            </mj-text>
+                            <mj-text align="center" font-size="16px" color="white" padding-top="15px">
+                                Join thousands of satisfied customers today
+                            </mj-text>
+                            <mj-button background-color="white" color="#667eea" padding-top="25px" href="#" font-weight="bold">
+                                Start Free Trial
+                            </mj-button>
+                        </mj-column>
+                    </mj-section>
+                `,
+                attributes: {
+                    class: 'gjs-fonts gjs-f-button'
+                }
+            });
+
+            // Footer
+            blockManager.add('footer-section', {
+                label: 'Footer',
+                category: 'Custom Sections',
+                content: `
+                    <mj-section background-color="#2d3748" padding="30px 0">
+                        <mj-column>
+                            <mj-text align="center" color="white" font-size="14px">
+                                © 2024 Your Company. All rights reserved.
+                            </mj-text>
+                            <mj-social font-size="15px" icon-size="30px" mode="horizontal" align="center" padding-top="20px">
+                                <mj-social-element name="facebook" href="#">
+                                </mj-social-element>
+                                <mj-social-element name="twitter" href="#">
+                                </mj-social-element>
+                                <mj-social-element name="instagram" href="#">
+                                </mj-social-element>
+                            </mj-social>
+                        </mj-column>
+                    </mj-section>
+                `,
+                attributes: {
+                    class: 'gjs-fonts gjs-f-b1'
+                }
+            });
+        }
+
+        // Setup auto-save functionality
+        function setupAutoSave() {
+            autoSaveInterval = setInterval(() => {
+                editor.store();
+                console.log('Auto-saved at', new Date().toLocaleTimeString());
+            }, 30000); // Auto-save every 30 seconds
+        }
+
+        // Setup custom commands
+        function setupCommands() {
+            editor.Commands.add('set-device-desktop', {
+                run: editor => editor.setDevice('Desktop')
+            });
+            editor.Commands.add('set-device-tablet', {
+                run: editor => editor.setDevice('Tablet')
+            });
+            editor.Commands.add('set-device-mobile', {
+                run: editor => editor.setDevice('Mobile')
+            });
+        }
+
+        // Load saved project or default template
+        function loadProject() {
+            const savedData = localStorage.getItem('gjsProject');
+            if (!savedData) {
+                // Load default template
+                editor.setComponents(`
+                    <mj-section background-color="#ffffff" padding="20px 0">
+                        <mj-column>
+                            <mj-text align="center" font-size="24px" font-weight="bold">
+                                Start Building Your Email
+                            </mj-text>
+                            <mj-text align="center" font-size="16px" color="#666666" padding-top="10px">
+                                Drag and drop blocks from the sidebar to get started
+                            </mj-text>
+                        </mj-column>
+                    </mj-section>
+                `);
             }
-            if (e.key === 'Escape') {
-                closeModal();
+        }
+
+        // Device selection
+        function setDevice(device) {
+            const deviceMap = {
+                'desktop': 'Desktop',
+                'tablet': 'Tablet',
+                'mobile': 'Mobile'
+            };
+            
+            editor.setDevice(deviceMap[device]);
+            
+            // Update button states
+            document.querySelectorAll('.device-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-device="${device}"]`).classList.add('active');
+        }
+
+        // Clear canvas
+        function clearCanvas() {
+            if (confirm('Are you sure you want to clear the entire canvas? This action cannot be undone.')) {
+                editor.DomComponents.clear();
+                editor.CssComposer.clear();
+                showNotification('Canvas cleared successfully', 'info');
             }
-        });
-        
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                closeModal();
+        }
+
+        // Show export modal
+        function showExportModal() {
+            const modal = document.getElementById('exportModal');
+            modal.classList.add('show');
+            switchTab('mjml');
+        }
+
+        // Close export modal
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.remove('show');
+        }
+
+        // Switch code tabs
+        function switchTab(type) {
+            currentCodeType = type;
+            const tabs = document.querySelectorAll('.tab-btn');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const codeContent = document.getElementById('codeContent');
+            
+            if (type === 'mjml') {
+                codeContent.textContent = editor.Commands.run('mjml-code');
+            } else {
+                const mjml = editor.Commands.run('mjml-code');
+                // Convert MJML to HTML (simplified - in production, use MJML API)
+                codeContent.textContent = editor.Commands.run('mjml-code-to-html');
             }
+        }
+
+        // Copy code to clipboard
+        function copyCode() {
+            const codeContent = document.getElementById('codeContent');
+            navigator.clipboard.writeText(codeContent.textContent).then(() => {
+                const btn = event.target;
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Copy Code';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Preview email
+        function previewEmail() {
+            const mjml = editor.Commands.run('mjml-code');
+            const previewWindow = window.open('', '_blank');
+            previewWindow.document.write(editor.Commands.run('mjml-code-to-html'));
+            previewWindow.document.close();
+        }
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            
+            notification.className = `notification ${type}`;
+            notificationText.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize on page load
+        window.onload = () => {
+            initEditor();
         };
-        
-        console.log('🎉 Professional Email Builder ready!');
+
+        // Clean up on page unload
+        window.onbeforeunload = () => {
+            clearInterval(autoSaveInterval);
+            editor.store();
+        };
     </script>
 </body>
 </html>
