@@ -14,9 +14,9 @@ function initializeEditor() {
         container: '#gjs',
         height: '100%',
         width: 'auto',
-        plugins: ['gjs-mjml'],
+        plugins: ['grapesjs-mjml'],
         pluginsOpts: {
-            'gjs-mjml': {
+            'grapesjs-mjml': {
                 // MJML plugin options
                 fonts: {
                     'Google Fonts': 'https://fonts.googleapis.com/css?family=',
@@ -36,8 +36,7 @@ function initializeEditor() {
         },
         assetManager: {
             upload: false,
-            uploadText: 'Drop files here or click to upload',
-            assets: getDefaultAssets()
+            uploadText: 'Drop files here or click to upload'
         },
         styleManager: {
             sectors: [{
@@ -62,8 +61,7 @@ function initializeEditor() {
             }]
         },
         blockManager: {
-            appendTo: '.gjs-blocks-c',
-            blocks: getCustomBlocks()
+            appendTo: '#gjs .gjs-blocks-c'
         },
         panels: {
             defaults: [{
@@ -81,23 +79,8 @@ function initializeEditor() {
                     label: '<i class="fa fa-code"></i>',
                     command: 'export-template',
                     context: 'export-template',
-                }, {
-                    id: 'show-json',
-                    className: 'btn-show-json',
-                    label: '<i class="fa fa-file-code-o"></i>',
-                    context: 'show-json',
-                    command(editor) {
-                        editor.Modal.setTitle('Components JSON')
-                            .setContent(`<textarea style="width:100%; height: 250px;">
-                                ${JSON.stringify(editor.getComponents(), null, 2)}
-                            </textarea>`)
-                            .open();
-                    },
                 }]
             }]
-        },
-        selectorManager: {
-            appendTo: '.styles-container'
         },
         deviceManager: {
             devices: [{
@@ -118,11 +101,87 @@ function initializeEditor() {
     // Add custom commands
     addCustomCommands();
     
+    // Add custom blocks after editor loads
+    addCustomBlocks();
+    
     // Load default template
     loadDefaultTemplate();
     
     // Auto-save functionality
     setupAutoSave();
+}
+
+function addCustomBlocks() {
+    const blockManager = editor.BlockManager;
+    
+    // Add custom blocks
+    blockManager.add('header-block', {
+        label: '<i class="fas fa-heading"></i><br>Header',
+        category: 'Email Sections',
+        content: `
+            <mj-section background-color="#f8f9fa" padding="20px 0">
+                <mj-column>
+                    <mj-text align="center" font-size="24px" font-weight="bold" color="#333">
+                        Your Header Here
+                    </mj-text>
+                </mj-column>
+            </mj-section>
+        `
+    });
+    
+    blockManager.add('hero-block', {
+        label: '<i class="fas fa-star"></i><br>Hero',
+        category: 'Email Sections',
+        content: `
+            <mj-hero background-color="#667eea" background-url="https://via.placeholder.com/600x400/667eea/ffffff" padding="100px 0">
+                <mj-text align="center" color="white" font-size="28px" font-weight="bold">
+                    Welcome to Our Newsletter
+                </mj-text>
+                <mj-text align="center" color="white" font-size="16px">
+                    Your amazing content starts here
+                </mj-text>
+                <mj-button href="#" background-color="#4CAF50">
+                    Get Started
+                </mj-button>
+            </mj-hero>
+        `
+    });
+    
+    blockManager.add('two-column-block', {
+        label: '<i class="fas fa-columns"></i><br>Two Columns',
+        category: 'Email Sections',
+        content: `
+            <mj-section padding="20px 0">
+                <mj-column width="50%">
+                    <mj-image src="https://via.placeholder.com/300x200/764ba2/ffffff?text=Image+1" alt="Image 1" />
+                    <mj-text align="center" font-weight="bold">Column 1 Title</mj-text>
+                    <mj-text>Your content here...</mj-text>
+                </mj-column>
+                <mj-column width="50%">
+                    <mj-image src="https://via.placeholder.com/300x200/4CAF50/ffffff?text=Image+2" alt="Image 2" />
+                    <mj-text align="center" font-weight="bold">Column 2 Title</mj-text>
+                    <mj-text>Your content here...</mj-text>
+                </mj-column>
+            </mj-section>
+        `
+    });
+    
+    blockManager.add('footer-block', {
+        label: '<i class="fas fa-shoe-prints"></i><br>Footer',
+        category: 'Email Sections',
+        content: `
+            <mj-section background-color="#f8f9fa" padding="20px 0">
+                <mj-column>
+                    <mj-divider border-color="#ddd" border-width="1px" />
+                    <mj-text align="center" font-size="12px" color="#666">
+                        © 2025 Your Company. All rights reserved.<br>
+                        <a href="#" style="color: #666;">Unsubscribe</a> | 
+                        <a href="#" style="color: #666;">Privacy Policy</a>
+                    </mj-text>
+                </mj-column>
+            </mj-section>
+        `
+    });
 }
 
 function getDefaultAssets() {
@@ -264,59 +323,46 @@ function addCustomCommands() {
 
 function loadDefaultTemplate() {
     const defaultTemplate = `
-        <mj-mjml>
-            <mj-head>
-                <mj-title>Welcome Email</mj-title>
-                <mj-preview>Welcome to our amazing newsletter!</mj-preview>
-                <mj-attributes>
-                    <mj-all font-family="Inter, Arial, sans-serif" />
-                    <mj-text font-size="16px" color="#333" line-height="1.6" />
-                    <mj-button background-color="#667eea" color="white" border-radius="6px" />
-                </mj-attributes>
-            </mj-head>
-            <mj-body background-color="#f4f4f4">
-                <mj-section background-color="white" padding="20px">
-                    <mj-column>
-                        <mj-text align="center" font-size="24px" font-weight="bold" color="#333">
-                            Welcome to Our Newsletter
-                        </mj-text>
-                        <mj-text>
-                            Thank you for subscribing! We're excited to share amazing content with you.
-                        </mj-text>
-                        <mj-button href="#" background-color="#667eea">
-                            Get Started
-                        </mj-button>
-                    </mj-column>
-                </mj-section>
-                
-                <mj-section background-color="white" padding="20px">
-                    <mj-column width="50%">
-                        <mj-image src="https://via.placeholder.com/300x200/764ba2/ffffff?text=Feature+1" alt="Feature 1" />
-                        <mj-text align="center" font-weight="bold">Amazing Feature 1</mj-text>
-                        <mj-text>Description of your first amazing feature.</mj-text>
-                    </mj-column>
-                    <mj-column width="50%">
-                        <mj-image src="https://via.placeholder.com/300x200/4CAF50/ffffff?text=Feature+2" alt="Feature 2" />
-                        <mj-text align="center" font-weight="bold">Amazing Feature 2</mj-text>
-                        <mj-text>Description of your second amazing feature.</mj-text>
-                    </mj-column>
-                </mj-section>
-                
-                <mj-section background-color="#f8f9fa" padding="20px">
-                    <mj-column>
-                        <mj-divider border-color="#ddd" />
-                        <mj-text align="center" font-size="12px" color="#666">
-                            © 2025 Your Company. All rights reserved.<br>
-                            <a href="#" style="color: #666;">Unsubscribe</a> | 
-                            <a href="#" style="color: #666;">Privacy Policy</a>
-                        </mj-text>
-                    </mj-column>
-                </mj-section>
-            </mj-body>
-        </mj-mjml>
+        <mj-section background-color="white" padding="20px">
+            <mj-column>
+                <mj-text align="center" font-size="24px" font-weight="bold" color="#333">
+                    Welcome to Our Newsletter
+                </mj-text>
+                <mj-text>
+                    Thank you for subscribing! We're excited to share amazing content with you.
+                </mj-text>
+                <mj-button href="#" background-color="#667eea">
+                    Get Started
+                </mj-button>
+            </mj-column>
+        </mj-section>
+        
+        <mj-section background-color="white" padding="20px">
+            <mj-column width="50%">
+                <mj-image src="https://via.placeholder.com/300x200/764ba2/ffffff?text=Feature+1" alt="Feature 1" />
+                <mj-text align="center" font-weight="bold">Amazing Feature 1</mj-text>
+                <mj-text>Description of your first amazing feature.</mj-text>
+            </mj-column>
+            <mj-column width="50%">
+                <mj-image src="https://via.placeholder.com/300x200/4CAF50/ffffff?text=Feature+2" alt="Feature 2" />
+                <mj-text align="center" font-weight="bold">Amazing Feature 2</mj-text>
+                <mj-text>Description of your second amazing feature.</mj-text>
+            </mj-column>
+        </mj-section>
+        
+        <mj-section background-color="#f8f9fa" padding="20px">
+            <mj-column>
+                <mj-divider border-color="#ddd" />
+                <mj-text align="center" font-size="12px" color="#666">
+                    © 2025 Your Company. All rights reserved.<br>
+                    <a href="#" style="color: #666;">Unsubscribe</a> | 
+                    <a href="#" style="color: #666;">Privacy Policy</a>
+                </mj-text>
+            </mj-column>
+        </mj-section>
     `;
     
-    if (!localStorage.getItem('gjs-mjml-email')) {
+    if (!localStorage.getItem('gjs-components')) {
         editor.setComponents(defaultTemplate);
     }
 }
