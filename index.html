@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free MJML Email Editor</title>
+    
+    <!-- GrapesJS CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/grapesjs@0.21.7/dist/css/grapes.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1><i class="fas fa-envelope"></i> Free MJML Email Editor</h1>
+            <div class="header-actions">
+                <button id="export-btn" class="btn btn-primary">
+                    <i class="fas fa-download"></i> Export HTML
+                </button>
+                <button id="export-mjml-btn" class="btn btn-secondary">
+                    <i class="fas fa-code"></i> Export MJML
+                </button>
+                <button id="preview-btn" class="btn btn-success">
+                    <i class="fas fa-eye"></i> Preview
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Editor Container -->
+    <div id="gjs" class="editor-container"></div>
+
+    <!-- Export Modal -->
+    <div id="export-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Export Code</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="export-tabs">
+                    <button class="tab-btn active" data-tab="html">HTML</button>
+                    <button class="tab-btn" data-tab="mjml">MJML</button>
+                </div>
+                <textarea id="export-code" readonly></textarea>
+                <button id="copy-code" class="btn btn-primary">
+                    <i class="fas fa-copy"></i> Copy to Clipboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="preview-modal" class="modal">
+        <div class="modal-content preview-modal">
+            <div class="modal-header">
+                <h3>Email Preview</h3>
+                <div class="preview-controls">
+                    <button class="preview-device active" data-device="desktop">
+                        <i class="fas fa-desktop"></i> Desktop
+                    </button>
+                    <button class="preview-device" data-device="tablet">
+                        <i class="fas fa-tablet-alt"></i> Tablet
+                    </button>
+                    <button class="preview-device" data-device="mobile">
+                        <i class="fas fa-mobile-alt"></i> Mobile
+                    </button>
+                </div>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <iframe id="preview-frame" src="about:blank"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading Email Editor...</p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/grapesjs@0.21.7/dist/grapes.min.js"></script>
+    <script src="https://unpkg.com/grapesjs-mjml@1.0.11/dist/grapesjs-mjml.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
