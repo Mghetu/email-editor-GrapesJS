@@ -425,68 +425,74 @@
 
         // Initialize the editor
         function initEditor() {
-            editor = grapesjs.init({
-                container: '#gjs',
-                height: '100%',
-                width: 'auto',
-                storageManager: {
-                    type: 'local',
-                    autosave: true,
-                    autoload: true,
-                    stepsBeforeSave: 1,
-                },
-                deviceManager: {
-                    devices: [
-                        { id: 'Desktop', name: 'Desktop', width: '100%' },
-                        { id: 'Tablet', name: 'Tablet', width: '768px' },
-                        { id: 'Mobile', name: 'Mobile', width: '320px' }
-                    ]
-                },
-                plugins: ['grapesjs-preset-newsletter'],
-                pluginsOpts: {
-                    'grapesjs-preset-newsletter': {
-                        modalTitleImport: 'Import Template',
-                        modalLabelImport: 'Paste your email template code below and click Import',
-                        modalLabelExport: 'Copy the code below',
-                        modalBtnImport: 'Import',
-                        importPlaceholder: 'Paste your HTML code here...',
-                        inlineCss: true,
-                        cellStyle: {
-                            'vertical-align': 'top',
-                            'padding': '0',
+            try {
+                editor = grapesjs.init({
+                    container: '#gjs',
+                    height: '100%',
+                    width: 'auto',
+                    storageManager: {
+                        type: 'local',
+                        autosave: true,
+                        autoload: true,
+                        stepsBeforeSave: 1,
+                    },
+                    deviceManager: {
+                        devices: [
+                            { id: 'Desktop', name: 'Desktop', width: '100%' },
+                            { id: 'Tablet', name: 'Tablet', width: '768px' },
+                            { id: 'Mobile', name: 'Mobile', width: '320px' }
+                        ]
+                    },
+                    plugins: ['grapesjs-preset-newsletter'],
+                    pluginsOpts: {
+                        'grapesjs-preset-newsletter': {
+                            modalTitleImport: 'Import Template',
+                            modalLabelImport: 'Paste your email template code below and click Import',
+                            modalLabelExport: 'Copy the code below',
+                            modalBtnImport: 'Import',
+                            importPlaceholder: 'Paste your HTML code here...',
+                            inlineCss: true,
+                            cellStyle: {
+                                'vertical-align': 'top',
+                                'padding': '0',
+                            }
                         }
+                    },
+                    canvas: {
+                        styles: [
+                            'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
+                        ]
                     }
-                },
-                canvas: {
-                    styles: [
-                        'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
-                    ]
-                }
-            });
+                });
 
-            // Add custom components
-            addCustomComponents();
-            
-            // Add custom blocks
-            addCustomBlocks();
-            
-            // Setup panels
-            setupPanels();
-            
-            // Load default content if empty
-            if (!editor.getComponents().length) {
-                loadDefaultTemplate();
+                // Add custom blocks after editor is initialized
+                setTimeout(() => {
+                    addCustomBlocks();
+                    addCustomComponents();
+                    setupPanels();
+                    
+                    // Load default content if empty
+                    if (!editor.getComponents().length) {
+                        loadDefaultTemplate();
+                    }
+                }, 100);
+
+                // Setup autosave notification
+                editor.on('storage:store', () => {
+                    showToast('Auto-saved', 'success');
+                });
+
+                // Hide loading screen
+                setTimeout(() => {
+                    document.getElementById('loading').classList.add('hide');
+                }, 1000);
+                
+                console.log('Editor initialized successfully');
+                
+            } catch (error) {
+                console.error('Error during initialization:', error);
+                throw error;
             }
-
-            // Setup autosave notification
-            editor.on('storage:store', () => {
-                showToast('Auto-saved', 'success');
-            });
-
-            // Hide loading screen
-            setTimeout(() => {
-                document.getElementById('loading').classList.add('hide');
-            }, 1000);
         }
 
         // Add custom email blocks
@@ -606,25 +612,30 @@
 
         // Add custom components
         function addCustomComponents() {
-            const domComponents = editor.DomComponents;
-            const defaultType = domComponents.getType('default');
-            const defaultModel = defaultType.model;
-            const defaultView = defaultType.view;
+            // Add a custom button block instead of component type
+            const blockManager = editor.Blocks;
+            
+            blockManager.add('custom-button', {
+                label: `<i class="fa fa-hand-pointer"></i><div>Button</div>`,
+                category: 'Basic',
+                content: `<a href="#" style="display: inline-block; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Click Me</a>`,
+                attributes: { class: 'gjs-block-button' }
+            });
 
-            // Custom button component
-            domComponents.addType('custom-button', {
-                model: defaultModel.extend({
-                    defaults: Object.assign({}, defaultModel.prototype.defaults, {
-                        draggable: true,
-                        droppable: false,
-                        tagName: 'a',
-                        attributes: { 
-                            href: '#',
-                            style: 'display: inline-block; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;'
-                        },
-                        content: 'Click Me'
-                    })
-                })
+            // Add spacer block
+            blockManager.add('spacer', {
+                label: `<i class="fa fa-arrows-alt-v"></i><div>Spacer</div>`,
+                category: 'Basic',
+                content: `<div style="padding: 20px 0;"></div>`,
+                attributes: { class: 'gjs-block-spacer' }
+            });
+
+            // Add divider block
+            blockManager.add('divider', {
+                label: `<i class="fa fa-minus"></i><div>Divider</div>`,
+                category: 'Basic',
+                content: `<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">`,
+                attributes: { class: 'gjs-block-divider' }
             });
         }
 
@@ -678,6 +689,7 @@
 
         // Device switcher
         function setDevice(device) {
+            if (!editor) return;
             editor.setDevice(device);
             
             // Update button states
@@ -689,6 +701,7 @@
 
         // Clear editor
         function clearEditor() {
+            if (!editor) return;
             if (confirm('Are you sure you want to clear everything? This cannot be undone.')) {
                 editor.DomComponents.clear();
                 editor.CssComposer.clear();
@@ -698,6 +711,10 @@
 
         // Export code
         function exportCode() {
+            if (!editor) {
+                showToast('Editor not loaded', 'error');
+                return;
+            }
             const html = editor.getHtml();
             const css = editor.getCss();
             
@@ -716,6 +733,8 @@
             const code = document.getElementById('htmlCode').textContent;
             navigator.clipboard.writeText(code).then(() => {
                 showToast('HTML copied to clipboard!', 'success');
+            }).catch(err => {
+                showToast('Failed to copy', 'error');
             });
         }
 
@@ -724,11 +743,17 @@
             const css = document.getElementById('cssCode').textContent;
             navigator.clipboard.writeText(css).then(() => {
                 showToast('CSS copied to clipboard!', 'success');
+            }).catch(err => {
+                showToast('Failed to copy', 'error');
             });
         }
 
         // Preview email
         function previewEmail() {
+            if (!editor) {
+                showToast('Editor not loaded', 'error');
+                return;
+            }
             const html = editor.getHtml();
             const css = editor.getCss();
             const fullHtml = `
@@ -774,18 +799,43 @@
 
         // Initialize editor when page loads
         window.addEventListener('DOMContentLoaded', () => {
+            // Check if GrapesJS is loaded
+            if (typeof grapesjs === 'undefined') {
+                console.error('GrapesJS library not loaded');
+                alert('Failed to load GrapesJS library. Please refresh the page.');
+                return;
+            }
+            
+            console.log('GrapesJS version:', grapesjs.version);
+            
             try {
                 initEditor();
-                console.log('Editor initialized successfully');
             } catch (error) {
                 console.error('Failed to initialize editor:', error);
-                alert('Failed to load editor. Please refresh the page.');
+                document.getElementById('loading').classList.add('hide');
+                
+                // Show error message
+                const container = document.getElementById('gjs');
+                container.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f8f9fa;">
+                        <div style="text-align: center; padding: 40px;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #f56565; margin-bottom: 20px;"></i>
+                            <h2 style="color: #2d3748; margin-bottom: 10px;">Failed to Load Editor</h2>
+                            <p style="color: #718096; margin-bottom: 20px;">There was an error initializing the email builder.</p>
+                            <button onclick="location.reload()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                Refresh Page
+                            </button>
+                        </div>
+                    </div>
+                `;
             }
         });
 
         // Auto-save before leaving
         window.addEventListener('beforeunload', () => {
-            editor.store();
+            if (editor) {
+                editor.store();
+            }
         });
     </script>
 </body>
