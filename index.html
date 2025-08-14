@@ -49,7 +49,7 @@
       }
     });
 
-    // Add mj-group button
+    // mj-group toggle button
     editor.Panels.addButton('options', {
       id: 'wrap-mj-group',
       className: 'fa fa-object-group',
@@ -63,7 +63,21 @@
       attributes: { title: 'Wrap in mj-group' }
     });
 
-    // Add Save as Block button
+    // Fluid image toggle
+    editor.Panels.addButton('options', {
+      id: 'fluid-image',
+      className: 'fa fa-image',
+      command: () => {
+        const selected = editor.getSelected();
+        if (selected && selected.is('mj-image')) {
+          const curr = selected.getAttributes()['fluid-on-mobile'];
+          selected.addAttributes({ 'fluid-on-mobile': curr === 'true' ? 'false' : 'true' });
+        }
+      },
+      attributes: { title: 'Toggle fluid-on-mobile for image' }
+    });
+
+    // Save as custom block
     editor.Panels.addButton('options', {
       id: 'save-as-block',
       className: 'fa fa-save',
@@ -76,12 +90,17 @@
         const blocks = JSON.parse(localStorage.getItem('custom-blocks') || '[]');
         blocks.push({ name, html });
         localStorage.setItem('custom-blocks', JSON.stringify(blocks));
+        editor.BlockManager.add(name, {
+          label: name,
+          content: html,
+          category: 'My Blocks'
+        });
         alert('Block saved');
       },
       attributes: { title: 'Save as custom block' }
     });
 
-    // Load custom blocks
+    // Load saved custom blocks
     const savedBlocks = JSON.parse(localStorage.getItem('custom-blocks') || '[]');
     savedBlocks.forEach(block => {
       editor.BlockManager.add(block.name, {
