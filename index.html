@@ -1,334 +1,95 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <!--
-    GrapesJS + GrapesJS-MJML Email Editor (Enhanced)
-    -------------------------------------------------
-    Additions in this version:
-    - Extra responsive device preset: Tablet (768px)
-    - UI toggles for common MJML flags:
-      • Toggle <mj-group> grouping inside a selected <mj-section>
-      • Toggle `fluid-on-mobile` on selected <mj-image>
-    - Custom Block Library:
-      • "Save as Block" stores the currently selected component/section as a reusable block
-      • Blocks are persisted to localStorage and registered at load under "My Blocks"
-      • Simple block manager UI (list + delete) via a modal
-  -->
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GrapesJS MJML Email Editor</title>
-
-  <!-- GrapesJS core CSS (requested version) -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/grapesjs@0.22.2/dist/css/grapes.min.css" />
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MJML Email Editor</title>
+  <link href="https://cdn.jsdelivr.net/npm/grapesjs@0.22.2/dist/css/grapes.min.css" rel="stylesheet" />
   <style>
-    html, body { height: 100%; margin: 0; }
-    #gjs { height: 100vh; overflow: hidden; }
-
-    /* Top bar */
-    .panel__top { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #f7f7f7; border-bottom: 1px solid #e0e0e0; z-index: 999; flex-wrap: wrap; }
-    .panel__group { display: inline-flex; gap: 6px; align-items: center; }
-    .panel__label { font: 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial; color: #555; margin-right: 4px; }
-    .panel__spacer { flex: 1 1 auto; }
-
-    .gjs-cv-canvas { top: 54px; }
-
-    /* Right-side switcher */
-    .panel__right { position: fixed; right: 10px; top: 60px; display: flex; gap: 6px; z-index: 999; }
-
-    .gjs-pn-btn { border-radius: 4px; padding: 4px 8px; }
-    .gjs-blocks-cs { width: 260px; }
-    .gjs-pn-panel.gjs-pn-views-container { border-left: 1px solid #e0e0e0; }
-
-    /* Modal content for block manager */
-    .blocks-list { max-height: 50vh; overflow: auto; }
-    .blocks-list-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed #ddd; }
-    .blocks-list-item button { margin-left: 10px; }
+    body, html { margin: 0; height: 100%; }
+    #gjs { height: 100%; }
   </style>
 </head>
 <body>
   <div id="gjs"></div>
-
-  <!-- GrapesJS core JS + MJML plugin -->
   <script src="https://cdn.jsdelivr.net/npm/grapesjs@0.22.2"></script>
   <script src="https://cdn.jsdelivr.net/npm/grapesjs-mjml@1.0.5"></script>
-
   <script>
-    // ------------------------------------------------------------
-    // 1) Initialize editor (same baseline as before)
-    // ------------------------------------------------------------
     const editor = grapesjs.init({
       container: '#gjs',
-      height: '100vh',
+      height: '100%',
       fromElement: false,
-      storageManager: {
-        id: 'gjs-mjml-',
-        type: 'local',
-        autosave: true,
-        autoload: true,
-        stepsBeforeSave: 1,
-      },
+      storageManager: false,
+      plugins: ['grapesjs-mjml'],
       deviceManager: {
-        // ➕ Add Tablet preset for improved responsive previews
         devices: [
           { name: 'Desktop', width: '' },
-          { name: 'Tablet',  width: '768px' },
-          { name: 'Mobile',  width: '320px' },
+          { name: 'Tablet', width: '768px' },
+          { name: 'Mobile', width: '320px' }
         ]
       },
-      plugins: ['grapesjs-mjml'],
-      pluginsOpts: { 'grapesjs-mjml': {} },
       styleManager: {
         sectors: [
-          { name: 'Typography', open: false, buildProps: ['font-family','font-size','font-weight','letter-spacing','line-height','color','text-align','text-decoration'] },
-          { name: 'Dimension',  open: false, buildProps: ['width','min-height','padding','margin'] },
-          { name: 'Decorations',open: false, buildProps: ['background-color','border','border-radius','box-shadow'] }
+          {
+            name: 'Typography',
+            open: false,
+            buildProps: ['font-family', 'font-size', 'font-weight', 'letter-spacing', 'line-height', 'color', 'text-align', 'text-decoration']
+          },
+          {
+            name: 'Dimension',
+            open: false,
+            buildProps: ['width', 'min-height', 'padding', 'margin']
+          },
+          {
+            name: 'Decorations',
+            open: false,
+            buildProps: ['background-color', 'border', 'border-radius', 'box-shadow']
+          }
         ]
       }
     });
 
-    // Seed minimal starter MJML if nothing is saved
-    if (!editor.getComponents().length) {
-      const starterMJML = `
-<mjml>
-  <mj-head>
-    <mj-attributes>
-      <mj-all font-family="Arial, Helvetica, sans-serif" />
-      <mj-text font-size="14px" line-height="22px" color="#333" />
-      <mj-section padding="0" />
-      <mj-column padding="20px" />
-      <mj-button background-color="#2f60d8" color="#ffffff" border-radius="6px" padding="12px 18px" />
-    </mj-attributes>
-    <mj-preview>Welcome to your MJML editor</mj-preview>
-  </mj-head>
-  <mj-body background-color="#f3f3f3">
-    <mj-section background-color="#ffffff">
-      <mj-group>
-        <mj-column>
-          <mj-text font-size="20px" font-weight="bold">Hello MJML</mj-text>
-          <mj-text>Drag blocks from the left. Use Style/Layers/Traits on the right. Export MJML from the top bar.</mj-text>
-        </mj-column>
-        <mj-column>
-          <mj-image src="https://via.placeholder.com/300x180" alt="Placeholder" />
-        </mj-column>
-      </mj-group>
-    </mj-section>
-  </mj-body>
-</mjml>`;
-      editor.setComponents(starterMJML);
-      editor.setStyle('');
-    }
-
-    // ------------------------------------------------------------
-    // 2) Panels & top bar groups
-    // ------------------------------------------------------------
-    const pn = editor.Panels;
-
-    // Create top bar and grouped sections
-    const topEl = document.body.appendChild(Object.assign(document.createElement('div'), { className: 'panel__top' }));
-    const groupBasic = Object.assign(document.createElement('div'), { className: 'panel__group' });
-    const groupResp  = Object.assign(document.createElement('div'), { className: 'panel__group' });
-    const groupToggles = Object.assign(document.createElement('div'), { className: 'panel__group' });
-    const groupBlocks = Object.assign(document.createElement('div'), { className: 'panel__group' });
-    const spacer = Object.assign(document.createElement('div'), { className: 'panel__spacer' });
-    topEl.append(groupBasic, spacer, groupResp, groupToggles, groupBlocks);
-
-    pn.addPanel({ id: 'panel__top', el: topEl });
-    pn.addPanel({ id: 'panel__basic-actions', el: groupBasic });
-    pn.addPanel({ id: 'panel__devices', el: groupResp });
-    pn.addPanel({ id: 'panel__toggles', el: groupToggles });
-    pn.addPanel({ id: 'panel__blocks', el: groupBlocks });
-
-    // Right-side view switcher (Style / Layers / Traits)
-    pn.addPanel({ id: 'panel__right', el: (() => { const el = document.createElement('div'); el.className = 'panel__right'; document.body.appendChild(el); return el; })() });
-
-    const addBtn = (panelId, opts) => pn.addButton(panelId, opts);
-
-    // Basic actions
-    addBtn('panel__basic-actions', { id: 'undo', className: 'gjs-pn-btn', label: 'Undo', command: 'core:undo', attributes: { title: 'Undo' } });
-    addBtn('panel__basic-actions', { id: 'redo', className: 'gjs-pn-btn', label: 'Redo', command: 'core:redo', attributes: { title: 'Redo' } });
-    addBtn('panel__basic-actions', { id: 'import', className: 'gjs-pn-btn', label: 'Import', command: 'gjs-open-importer', attributes: { title: 'Import MJML' } });
-    addBtn('panel__basic-actions', { id: 'export', className: 'gjs-pn-btn', label: 'Export', command: 'export-template', attributes: { title: 'Export MJML' } });
-    addBtn('panel__basic-actions', { id: 'preview', className: 'gjs-pn-btn', label: 'Preview', command: 'preview', attributes: { title: 'Preview' } });
-    addBtn('panel__basic-actions', { id: 'fullscreen', className: 'gjs-pn-btn', label: 'Full', command: 'fullscreen', attributes: { title: 'Fullscreen' } });
-
-    // Clear canvas
-    editor.Commands.add('clear-canvas', { run(ed){ if (confirm('Clear the canvas?')) { ed.DomComponents.clear(); ed.CssComposer.clear(); ed.setComponents('<mjml><mj-body></mj-body></mjml>'); } } });
-    addBtn('panel__basic-actions', { id: 'clear', className: 'gjs-pn-btn', label: 'Clean', command: 'clear-canvas', attributes: { title: 'Clean Canvas' } });
-
-    // Device presets (Desktop / Tablet / Mobile)
-    addBtn('panel__devices', { id: 'device-desktop', className: 'gjs-pn-btn', label: 'Desktop', command: e => e.setDevice('Desktop'), attributes: { title: 'Desktop' } });
-    addBtn('panel__devices', { id: 'device-tablet',  className: 'gjs-pn-btn', label: 'Tablet',  command: e => e.setDevice('Tablet'),  attributes: { title: 'Tablet (768px)' } });
-    addBtn('panel__devices', { id: 'device-mobile',  className: 'gjs-pn-btn', label: 'Mobile',  command: e => e.setDevice('Mobile'),  attributes: { title: 'Mobile (320px)' } });
-
-    // Right side: open Style/Layers/Traits
-    addBtn('panel__right', { id: 'open-sm', className: 'gjs-pn-btn', label: 'Style', command: 'open-sm', attributes: { title: 'Open Style Manager' } });
-    addBtn('panel__right', { id: 'open-layers', className: 'gjs-pn-btn', label: 'Layers', command: 'open-layers', attributes: { title: 'Open Layers' } });
-    addBtn('panel__right', { id: 'open-traits', className: 'gjs-pn-btn', label: 'Traits', command: 'open-traits', attributes: { title: 'Open Traits' } });
-
-    // ------------------------------------------------------------
-    // 3) UI Toggles for MJML flags
-    // ------------------------------------------------------------
-    // A) Toggle <mj-group> inside a selected <mj-section>
-    editor.Commands.add('toggle-mj-group', {
-      run(ed){
-        const sel = ed.getSelected();
-        if (!sel) return alert('Select an <mj-section> to toggle grouping.');
-        const type = sel.get('type');
-        if (type !== 'mj-section') return alert('This action works on <mj-section> only.');
-
-        const children = sel.components();
-        if (!children.length) return alert('Section has no children to group.');
-
-        // Detect if already grouped (first child is mj-group)
-        const alreadyGrouped = children.at(0) && children.at(0).get('type') === 'mj-group';
-
-        if (!alreadyGrouped) {
-          // Wrap each mj-column with its own mj-group (keeps side-by-side on mobile)
-          const toWrap = [...children.models];
-          toWrap.forEach(col => {
-            if (col.get('type') === 'mj-column') {
-              const grp = sel.append({ type: 'mj-group' });
-              grp.append(col); // move column into the new group
-            }
-          });
-          // Remove original columns that were moved (leftover empty models are auto-handled)
-          toWrap.forEach(m => { if (!m.parent()) m.remove(); });
-        } else {
-          // Unwrap: move columns out of mj-group back into section, then remove groups
-          const groups = children.models.filter(c => c.get('type') === 'mj-group');
-          groups.forEach(g => {
-            const cols = g.components().models;
-            cols.forEach(c => sel.append(c));
-            g.remove();
-          });
+    // Add mj-group button
+    editor.Panels.addButton('options', {
+      id: 'wrap-mj-group',
+      className: 'fa fa-object-group',
+      command: () => {
+        const selected = editor.getSelected();
+        if (selected && selected.is('mj-section')) {
+          const wrapper = editor.addComponents(`<mj-group>${selected.toHTML()}</mj-group>`);
+          selected.replaceWith(wrapper[0]);
         }
-        ed.trigger('change:canvas');
-      }
+      },
+      attributes: { title: 'Wrap in mj-group' }
     });
 
-    // B) Toggle `fluid-on-mobile` on selected <mj-image>
-    editor.Commands.add('toggle-fluid-on-mobile', {
-      run(ed){
-        const sel = ed.getSelected();
-        if (!sel) return alert('Select an <mj-image> first.');
-        if (sel.get('type') !== 'mj-image') return alert('This action works on <mj-image> only.');
-        const curr = sel.getAttributes()['fluid-on-mobile'];
-        if (curr) {
-          sel.addAttributes({ 'fluid-on-mobile': null }); // remove attribute
-        } else {
-          sel.addAttributes({ 'fluid-on-mobile': 'true' });
-        }
-        ed.trigger('change:canvas');
-      }
-    });
-
-    // Buttons for the toggles in the top bar
-    addBtn('panel__toggles', { id: 'toggle-group', className: 'gjs-pn-btn', label: 'Group cols', command: 'toggle-mj-group', attributes: { title: 'Toggle <mj-group> in selected <mj-section>' } });
-    addBtn('panel__toggles', { id: 'toggle-fluid', className: 'gjs-pn-btn', label: 'Fluid img', command: 'toggle-fluid-on-mobile', attributes: { title: 'Toggle fluid-on-mobile on selected <mj-image>' } });
-
-    // ------------------------------------------------------------
-    // 4) Custom Block Library (localStorage-backed)
-    // ------------------------------------------------------------
-    const bm = editor.BlockManager;
-    const BLOCKS_KEY = 'gjs-mjml-user-blocks';
-
-    function readUserBlocks(){
-      try { return JSON.parse(localStorage.getItem(BLOCKS_KEY) || '[]'); }
-      catch(e){ return []; }
-    }
-    function writeUserBlocks(list){ localStorage.setItem(BLOCKS_KEY, JSON.stringify(list)); }
-
-    function registerUserBlock(block){
-      // Register into the Block Manager under category "My Blocks"
-      bm.add(block.id, {
-        label: block.name,
-        category: 'My Blocks',
-        content: block.content, // Component definition object (GrapesJS will instantiate it)
-        // Optional: provide a simple preview via label only; for richer preview supply "media"
-      });
-    }
-
-    function loadUserBlocksIntoBM(){
-      const list = readUserBlocks();
-      list.forEach(registerUserBlock);
-    }
-
-    // Save currently selected component/section as a reusable block
-    editor.Commands.add('save-as-block', {
-      run(ed){
-        const sel = ed.getSelected();
-        if (!sel) return alert('Select a component (e.g., a section) to save as a block.');
-
-        const name = prompt('Block name:', sel.getName() || sel.get('type') || 'My Block');
+    // Add Save as Block button
+    editor.Panels.addButton('options', {
+      id: 'save-as-block',
+      className: 'fa fa-save',
+      command: () => {
+        const selected = editor.getSelected();
+        if (!selected) return alert('Select a component first');
+        const name = prompt('Block name:');
         if (!name) return;
-
-        // Serialize selected component as a component-definition object
-        const json = sel.toJSON();
-        // Ensure we strip the component id to avoid collisions on reuse
-        const clean = JSON.parse(JSON.stringify(json));
-        delete clean.id;
-
-        const id = `user-block-${Date.now()}`;
-        const newBlock = { id, name, content: clean };
-
-        const list = readUserBlocks();
-        list.push(newBlock);
-        writeUserBlocks(list);
-        registerUserBlock(newBlock);
-        alert(`Saved block "${name}" under category "My Blocks".`);
-      }
+        const html = selected.toHTML();
+        const blocks = JSON.parse(localStorage.getItem('custom-blocks') || '[]');
+        blocks.push({ name, html });
+        localStorage.setItem('custom-blocks', JSON.stringify(blocks));
+        alert('Block saved');
+      },
+      attributes: { title: 'Save as custom block' }
     });
 
-    // Simple modal to manage (list/delete) saved blocks
-    editor.Commands.add('manage-blocks', {
-      run(ed){
-        const list = readUserBlocks();
-        const modal = ed.Modal;
-        const cont = document.createElement('div');
-        cont.innerHTML = `<h3 style="margin:0 0 8px;">My Blocks</h3>`;
-        const ul = document.createElement('div');
-        ul.className = 'blocks-list';
-        if (!list.length) {
-          ul.innerHTML = '<div class="muted">No saved blocks yet.</div>';
-        } else {
-          list.forEach((b, idx) => {
-            const row = document.createElement('div');
-            row.className = 'blocks-list-item';
-            const left = document.createElement('div');
-            left.textContent = b.name;
-            const right = document.createElement('div');
-            const del = document.createElement('button');
-            del.textContent = 'Delete';
-            del.onclick = () => {
-              const fresh = readUserBlocks().filter(x => x.id !== b.id);
-              writeUserBlocks(fresh);
-              bm.remove(b.id);
-              row.remove();
-            };
-            right.appendChild(del);
-            row.append(left, right);
-            ul.appendChild(row);
-          });
-        }
-        cont.appendChild(ul);
-        modal.open({ title: 'Manage Saved Blocks', content: cont });
-      }
+    // Load custom blocks
+    const savedBlocks = JSON.parse(localStorage.getItem('custom-blocks') || '[]');
+    savedBlocks.forEach(block => {
+      editor.BlockManager.add(block.name, {
+        label: block.name,
+        content: block.html,
+        category: 'My Blocks'
+      });
     });
-
-    // Buttons for the custom block library
-    addBtn('panel__blocks', { id: 'save-block', className: 'gjs-pn-btn', label: 'Save as Block', command: 'save-as-block', attributes: { title: 'Save selected component as a reusable block' } });
-    addBtn('panel__blocks', { id: 'manage-blocks', className: 'gjs-pn-btn', label: 'My Blocks', command: 'manage-blocks', attributes: { title: 'List / delete saved blocks' } });
-
-    // Register saved blocks at load
-    editor.on('load', () => {
-      loadUserBlocksIntoBM();
-      const openBlocks = editor.Panels.getButton('views', 'open-blocks');
-      if (openBlocks) openBlocks.set('active', 1);
-    });
-
-    // Expose editor globally for debugging
-    window.editor = editor;
   </script>
 </body>
 </html>
