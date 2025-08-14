@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MJML Email Editor - GrapesJS</title>
+    
+    <!-- GrapesJS CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/grapesjs@0.22.2/dist/css/grapes.min.css">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Top Toolbar -->
+    <div id="navbar" class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <span>📧 MJML Email Editor</span>
+            </div>
+            <div class="navbar-actions">
+                <button id="save-btn" class="btn btn-primary">💾 Save</button>
+                <button id="load-btn" class="btn btn-secondary">📂 Load</button>
+                <button id="download-btn" class="btn btn-success">⬇️ Download HTML</button>
+                <button id="clear-btn" class="btn btn-danger">🗑️ Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Editor Container -->
+    <div id="gjs">
+        <!-- Default MJML template -->
+        <mjml>
+            <mj-head>
+                <mj-title>Welcome to MJML Email Editor</mj-title>
+                <mj-preview>Build beautiful responsive emails with ease</mj-preview>
+            </mj-head>
+            <mj-body background-color="#f4f4f4">
+                <!-- Header Section -->
+                <mj-section background-color="#ffffff" padding="20px">
+                    <mj-column>
+                        <mj-text font-size="28px" color="#626262" font-family="Helvetica Neue" align="center" font-weight="bold">
+                            Welcome to Our Newsletter
+                        </mj-text>
+                    </mj-column>
+                </mj-section>
+                
+                <!-- Content Section -->
+                <mj-section background-color="#ffffff" padding="20px">
+                    <mj-column>
+                        <mj-text font-size="16px" color="#525252" line-height="1.6">
+                            This is a sample email template built with MJML. You can edit this content and add new components using the drag-and-drop editor.
+                        </mj-text>
+                        <mj-button background-color="#F45E43" color="white" href="#" border-radius="3px">
+                            Get Started
+                        </mj-button>
+                    </mj-column>
+                </mj-section>
+                
+                <!-- Group Example -->
+                <mj-section background-color="#f8f8f8" padding="20px">
+                    <mj-group>
+                        <mj-column width="50%">
+                            <mj-text font-size="14px" color="#525252">
+                                <strong>Feature 1</strong><br>
+                                Description of feature 1
+                            </mj-text>
+                        </mj-column>
+                        <mj-column width="50%">
+                            <mj-text font-size="14px" color="#525252">
+                                <strong>Feature 2</strong><br>
+                                Description of feature 2
+                            </mj-text>
+                        </mj-column>
+                    </mj-group>
+                </mj-section>
+            </mj-body>
+        </mjml>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/grapesjs@0.22.2/dist/grapes.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/grapesjs-mjml@1.0.5/dist/grapesjs-mjml.min.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
