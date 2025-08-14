@@ -1,119 +1,65 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <!--
-    GrapesJS + GrapesJS-MJML Email Editor
-    -------------------------------------------------
-    This single-file implementation mirrors the official demo at
-    https://grapesjs.com/demo-mjml.html using the exact plugin CDN.
-
-    Key goals fulfilled:
-    - Clean, modular, standards-compliant HTML/CSS/JS
-    - Extensive inline comments explaining setup and configuration
-    - Full-featured editor with the same panels, options, and components
-    - Works on GitHub Pages (pure client-side; no build step required)
-  -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GrapesJS MJML Email Editor</title>
-
-  <!-- GrapesJS core CSS (from the exact version requested) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/grapesjs@0.22.2/dist/css/grapes.min.css" />
-
-  <!--
-    Minimal custom styles to reproduce the demo look & feel:
-    - Top command bar (undo/redo, import/export, etc.)
-    - Right-side panel switcher (Style / Layers / Traits)
-    - Subtle layout polish
-  -->
   <style>
-    /* Make the editor fill the viewport */
     html, body { height: 100%; margin: 0; }
-
-    /* Host element for the GrapesJS canvas */
     #gjs { height: 100vh; overflow: hidden; }
-
-    /* Panels */
     .panel__top { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #f7f7f7; border-bottom: 1px solid #e0e0e0; z-index: 999; }
     .panel__basic-actions { display: flex; gap: 6px; }
     .panel__devices { margin-left: auto; display: flex; gap: 6px; }
-    .gjs-cv-canvas { top: 46px; } /* push canvas below fixed top bar */
-
-    /* Right-side switcher buttons (Views) */
+    .gjs-cv-canvas { top: 46px; }
     .panel__right { position: fixed; right: 10px; top: 52px; display: flex; gap: 6px; z-index: 999; }
-
-    /* Helper classes to keep icons compact */
     .btn, .gjs-pn-btn { border-radius: 4px; }
-
-    /* Make the block manager panel a bit wider, like the demo */
     .gjs-blocks-cs { width: 260px; }
-
-    /* Optional: small tweaks to make things feel polished */
     .gjs-pn-panel.gjs-pn-views-container { border-left: 1px solid #e0e0e0; }
   </style>
 </head>
 <body>
-  <!--
-    Root container that GrapesJS will take over.
-    The editor UI (blocks, layers, styles, traits, etc.) will render inside.
-  -->
   <div id="gjs"></div>
-
-  <!-- GrapesJS core JS (exact version required) -->
   <script src="https://cdn.jsdelivr.net/npm/grapesjs@0.22.2"></script>
-  <!-- GrapesJS-MJML plugin (exact version required) -->
   <script src="https://cdn.jsdelivr.net/npm/grapesjs-mjml@1.0.5"></script>
-
   <script>
-    // ------------------------------------------------------------
-    // 1) Basic editor initialization
-    // ------------------------------------------------------------
     const editor = grapesjs.init({
-      // Bind the editor to the #gjs element
       container: '#gjs',
-
-      // Use the full viewport height (the canvas area is offset via CSS)
       height: '100vh',
-
-      // Start with a clean canvas; we will inject a default MJML template below
       fromElement: false,
-
-      // Enable built-in storage so the user's work persists between reloads
       storageManager: {
-        id: 'gjs-mjml-',     // A unique prefix for this project
-        type: 'local',       // Use localStorage (ideal for GitHub Pages)
+        id: 'gjs-mjml-',
+        type: 'local',
         autosave: true,
         autoload: true,
         stepsBeforeSave: 1,
       },
-
-      // Define basic device presets to mirror the demo behaviour
       deviceManager: {
         devices: [
-          { name: 'Desktop', width: '' },          // 100% width (email wrapper is 600px by default)
-          { name: 'Mobile',  width: '320px' },     // Narrow preview for mobile rendering
+          { name: 'Desktop', width: '' },
+          { name: 'Mobile', width: '320px' }
         ]
       },
-
-      // Panels are added programmatically below, but keep the default containers enabled
-      panels: { defaults: [] },
-
-      // Load the MJML plugin exactly as per docs
       plugins: ['grapesjs-mjml'],
-      pluginsOpts: {
-        'grapesjs-mjml': {
-          // Keep defaults; the plugin contributes:
-          // - MJML blocks (section, column, text, image, button, divider, social, spacer, raw, hero, navbar, etc.)
-          // - Component types mapped to MJML tags
-          // - Import/Export of MJML via the default importer/exporter
-        }
+      pluginsOpts: { 'grapesjs-mjml': {} },
+      styleManager: {
+        sectors: [
+          {
+            name: 'Typography', open: false,
+            buildProps: ['font-family', 'font-size', 'font-weight', 'letter-spacing', 'line-height', 'color', 'text-align', 'text-decoration']
+          },
+          {
+            name: 'Dimension', open: false,
+            buildProps: ['width', 'min-height', 'padding', 'margin']
+          },
+          {
+            name: 'Decorations', open: false,
+            buildProps: ['background-color', 'border', 'border-radius', 'box-shadow']
+          }
+        ]
       }
     });
 
-    // ------------------------------------------------------------
-    // 2) Default MJML template (optional, mirrors the demo style)
-    // ------------------------------------------------------------
-    // If the canvas has no saved content, provide a friendly starter MJML.
     if (!editor.getComponents().length) {
       const starterMJML = `
 <mjml>
@@ -125,9 +71,6 @@
       <mj-column padding="20px" />
       <mj-button background-color="#2f60d8" color="#ffffff" border-radius="6px" padding="12px 18px" />
     </mj-attributes>
-    <mj-style>
-      .muted { color:#888; }
-    </mj-style>
     <mj-preview>Welcome to your MJML editor</mj-preview>
   </mj-head>
   <mj-body background-color="#f3f3f3">
@@ -135,158 +78,53 @@
       <mj-column>
         <mj-text font-size="22px" font-weight="bold">Build beautiful emails with GrapesJS + MJML</mj-text>
         <mj-divider border-color="#e5e5e5" />
-        <mj-text class="muted">Drag components from the left panel. Customize their styles on the right. Export MJML any time.</mj-text>
+        <mj-text>Drag components from the left panel. Customize their styles on the right. Export MJML any time.</mj-text>
         <mj-button href="#">Primary Action</mj-button>
       </mj-column>
     </mj-section>
   </mj-body>
 </mjml>`;
-      // Inject MJML into the canvas. The MJML plugin maps this markup to components.
       editor.setComponents(starterMJML);
       editor.setStyle('');
     }
 
-    // ------------------------------------------------------------
-    // 3) Top command bar (mirrors demo buttons & actions)
-    // ------------------------------------------------------------
     const pn = editor.Panels;
-
-    // Create a custom top bar container
     pn.addPanel({ id: 'panel__top', el: document.body.appendChild(Object.assign(document.createElement('div'), { className: 'panel__top' })) });
+    pn.addPanel({ id: 'panel__basic-actions', el: (() => { const el = document.createElement('div'); el.className = 'panel__basic-actions'; document.querySelector('.panel__top').appendChild(el); return el; })() });
+    pn.addPanel({ id: 'panel__devices', el: (() => { const el = document.createElement('div'); el.className = 'panel__devices'; document.querySelector('.panel__top').appendChild(el); return el; })() });
+    pn.addPanel({ id: 'panel__right', el: (() => { const el = document.createElement('div'); el.className = 'panel__right'; document.body.appendChild(el); return el; })() });
 
-    // Basic actions group (undo/redo, import/export, clear, preview, fullscreen)
-    pn.addPanel({ id: 'panel__basic-actions', el: (() => {
-      const el = document.createElement('div');
-      el.className = 'panel__basic-actions';
-      document.querySelector('.panel__top').appendChild(el);
-      return el;
-    })() });
-
-    // Device buttons group on the right
-    pn.addPanel({ id: 'panel__devices', el: (() => {
-      const el = document.createElement('div');
-      el.className = 'panel__devices';
-      document.querySelector('.panel__top').appendChild(el);
-      return el;
-    })() });
-
-    // Right-side view switcher (Style / Layers / Traits) similar to demo
-    pn.addPanel({ id: 'panel__right', el: (() => {
-      const el = document.createElement('div');
-      el.className = 'panel__right';
-      document.body.appendChild(el);
-      return el;
-    })() });
-
-    // Helper to add a button with icon/text
     const addBtn = (panelId, opts) => pn.addButton(panelId, opts);
+    addBtn('panel__basic-actions', { id: 'undo', className: 'gjs-pn-btn', label: 'Undo', command: 'core:undo' });
+    addBtn('panel__basic-actions', { id: 'redo', className: 'gjs-pn-btn', label: 'Redo', command: 'core:redo' });
+    addBtn('panel__basic-actions', { id: 'import', className: 'gjs-pn-btn', label: 'Import', command: 'gjs-open-importer' });
+    addBtn('panel__basic-actions', { id: 'export', className: 'gjs-pn-btn', label: 'Export', command: 'export-template' });
+    addBtn('panel__basic-actions', { id: 'preview', className: 'gjs-pn-btn', label: 'Preview', command: 'preview' });
+    addBtn('panel__basic-actions', { id: 'fullscreen', className: 'gjs-pn-btn', label: 'Full', command: 'fullscreen' });
 
-    // Built-in commands used below:
-    // - core: undo, redo, preview, fullscreen, set-device-desktop, set-device-mobile
-    // - importer/exporter are provided/overridden by MJML plugin
-
-    // Undo / Redo
-    addBtn('panel__basic-actions', { id: 'undo', className: 'gjs-pn-btn', label: 'Undo', command: 'core:undo', attributes: { title: 'Undo' } });
-    addBtn('panel__basic-actions', { id: 'redo', className: 'gjs-pn-btn', label: 'Redo', command: 'core:redo', attributes: { title: 'Redo' } });
-
-    // Import MJML (opens the modal importer). The MJML plugin makes the importer MJML-aware.
-    addBtn('panel__basic-actions', { id: 'import', className: 'gjs-pn-btn', label: 'Import', command: 'gjs-open-importer', attributes: { title: 'Import MJML' } });
-
-    // Export MJML (exports MJML markup). The plugin ensures MJML is exported, not plain HTML.
-    addBtn('panel__basic-actions', { id: 'export', className: 'gjs-pn-btn', label: 'Export', command: 'export-template', attributes: { title: 'Export MJML' } });
-
-    // Preview / Fullscreen
-    addBtn('panel__basic-actions', { id: 'preview', className: 'gjs-pn-btn', label: 'Preview', command: 'preview', attributes: { title: 'Preview' } });
-    addBtn('panel__basic-actions', { id: 'fullscreen', className: 'gjs-pn-btn', label: 'Full', command: 'fullscreen', attributes: { title: 'Fullscreen' } });
-
-    // Clear Canvas (custom command with confirmation)
     editor.Commands.add('clear-canvas', {
       run(ed) {
-        if (confirm('Clear the canvas? This will remove all components.')) {
+        if (confirm('Clear the canvas?')) {
           ed.DomComponents.clear();
           ed.CssComposer.clear();
-          // Re-seed a minimal MJML skeleton so the user has a valid root
           ed.setComponents('<mjml><mj-body></mj-body></mjml>');
         }
       }
     });
-    addBtn('panel__basic-actions', { id: 'clear', className: 'gjs-pn-btn', label: 'Clean', command: 'clear-canvas', attributes: { title: 'Clean Canvas' } });
+    addBtn('panel__basic-actions', { id: 'clear', className: 'gjs-pn-btn', label: 'Clean', command: 'clear-canvas' });
 
-    // Device toggles
-    addBtn('panel__devices', { id: 'device-desktop', className: 'gjs-pn-btn', label: 'Desktop', command: e => e.setDevice('Desktop'), attributes: { title: 'Desktop' } });
-    addBtn('panel__devices', { id: 'device-mobile', className: 'gjs-pn-btn', label: 'Mobile',  command: e => e.setDevice('Mobile'),  attributes: { title: 'Mobile' } });
+    addBtn('panel__devices', { id: 'device-desktop', className: 'gjs-pn-btn', label: 'Desktop', command: e => e.setDevice('Desktop') });
+    addBtn('panel__devices', { id: 'device-mobile', className: 'gjs-pn-btn', label: 'Mobile',  command: e => e.setDevice('Mobile') });
 
-    // ------------------------------------------------------------
-    // 4) View Switcher (Blocks / Style / Layers / Traits)
-    // ------------------------------------------------------------
-    // In the demo, the left sidebar shows Blocks; right-side buttons toggle Views
+    addBtn('panel__right', { id: 'open-sm', className: 'gjs-pn-btn', label: 'Style', command: 'open-sm' });
+    addBtn('panel__right', { id: 'open-layers', className: 'gjs-pn-btn', label: 'Layers', command: 'open-layers' });
+    addBtn('panel__right', { id: 'open-traits', className: 'gjs-pn-btn', label: 'Traits', command: 'open-traits' });
 
-    // Attach built-in panels for Blocks, Layers, Styles, and Traits
-    pn.addPanel({ id: 'views', el: '.gjs-pn-views-container' });
-
-    // Right side buttons to open Style, Layers, Traits panels
-    addBtn('panel__right', {
-      id: 'open-sm',
-      className: 'gjs-pn-btn',
-      label: 'Style',
-      command: 'open-sm',
-      attributes: { title: 'Open Style Manager' }
-    });
-
-    addBtn('panel__right', {
-      id: 'open-layers',
-      className: 'gjs-pn-btn',
-      label: 'Layers',
-      command: 'open-layers',
-      attributes: { title: 'Open Layers' }
-    });
-
-    addBtn('panel__right', {
-      id: 'open-traits',
-      className: 'gjs-pn-btn',
-      label: 'Traits',
-      command: 'open-traits',
-      attributes: { title: 'Open Traits' }
-    });
-
-    // Ensure the default visible view is the Block Manager on the left
     editor.on('load', () => {
       const openBlocks = editor.Panels.getButton('views', 'open-blocks');
       if (openBlocks) openBlocks.set('active', 1);
     });
 
-    // ------------------------------------------------------------
-    // 5) Style Manager sectors (to align with the demo)
-    // ------------------------------------------------------------
-    // The demo exposes typical text, dimension, background, and decoration controls
-    editor.StyleManager.addSectors([
-      {
-        name: 'Typography', open: false,
-        buildProps: ['font-family', 'font-size', 'font-weight', 'letter-spacing', 'line-height', 'color', 'text-align', 'text-decoration']
-      },
-      {
-        name: 'Dimension', open: false,
-        buildProps: ['width', 'min-height', 'padding', 'margin']
-      },
-      {
-        name: 'Decorations', open: false,
-        buildProps: ['background-color', 'border', 'border-radius', 'box-shadow']
-      }
-    ], { append: false });
-
-    // ------------------------------------------------------------
-    // 6) Optional: set the default email width to 600px like the demo
-    // ------------------------------------------------------------
-    editor.on('load', () => {
-      const canvas = editor.Canvas;
-      const frame = canvas.getFrameEl();
-      if (frame) {
-        // Constrain email wrapper width for nicer preview while keeping devices functional
-        frame.style.width = '100%';
-      }
-    });
-
-    // Tip: Expose the editor for debugging via devtools on GitHub Pages
     window.editor = editor;
   </script>
 </body>
