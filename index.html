@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Enhanced MJML Email Editor - Mobile & Group Fixed</title>
+  <title>Enhanced MJML Email Editor - Group Mobile Behavior Fixed</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/grapesjs@0.22.2/dist/css/grapes.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
@@ -204,6 +204,48 @@
     
     .gjs-block:hover {
       transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    /* Mobile canvas simulation styles */
+    .gjs-cv-canvas iframe {
+      transition: all 0.3s ease;
+    }
+    
+    /* Force proper mobile styles in canvas */
+    .gjs-cv-canvas[data-device="Mobile"] iframe {
+      width: 320px !important;
+      max-width: 320px !important;
+    }
+    
+    /* Override MJML default mobile stacking for groups */
+    .gjs-cv-canvas[data-device="Mobile"] iframe body [data-mjml="mj-group"] {
+      display: table !important;
+      width: 100% !important;
+    }
+    
+    .gjs-cv-canvas[data-device="Mobile"] iframe body [data-mjml="mj-group"] [data-mjml="mj-column"] {
+      display: table-cell !important;
+      vertical-align: top !important;
+      width: 50% !important;
+    }
+    
+    /* Ensure group columns stay side by side on mobile */
+    @media screen and (max-width: 480px) {
+      .gjs-cv-canvas iframe body mj-group,
+      .gjs-cv-canvas iframe body [data-mjml="mj-group"] {
+        direction: ltr !important;
+        display: table !important;
+        table-layout: fixed !important;
+        width: 100% !important;
+      }
+      
+      .gjs-cv-canvas iframe body mj-group mj-column,
+      .gjs-cv-canvas iframe body [data-mjml="mj-group"] [data-mjml="mj-column"] {
+        display: table-cell !important;
+        vertical-align: top !important;
+        width: 50% !important;
+        float: none !important;
+      }
     }
   </style>
 </head>
@@ -532,26 +574,38 @@
           },
           deviceManager: {
             devices: [
-              { name: 'Desktop', width: '', widthMedia: '' },
-              { name: 'Tablet', width: '768px', widthMedia: '768px' },
-              { name: 'Mobile', width: '320px', widthMedia: '320px' }
+              { 
+                name: 'Desktop', 
+                width: '', 
+                widthMedia: '',
+                priority: 1
+              },
+              { 
+                name: 'Mobile', 
+                width: '320px', 
+                widthMedia: '320px',
+                priority: 2
+              }
             ]
           },
           plugins: ['grapesjs-mjml'],
           pluginsOpts: { 
             'grapesjs-mjml': {
+              // Ensure proper handling of group components
+              resetBlocks: false,
+              resetDevices: false,
               customComponents: {
                 'Group.ts': {
                   tagName: 'mj-group',
                   name: 'Group',
                   category: 'Layout',
                   label: 'Group',
-                  content: `<mj-group>
-                    <mj-column>
-                      <mj-text>Column 1</mj-text>
+                  content: `<mj-group width="100%">
+                    <mj-column width="50%" padding="10px">
+                      <mj-text align="center">Column 1</mj-text>
                     </mj-column>
-                    <mj-column>
-                      <mj-text>Column 2</mj-text>
+                    <mj-column width="50%" padding="10px">
+                      <mj-text align="center">Column 2</mj-text>
                     </mj-column>
                   </mj-group>`,
                   attributes: {
@@ -625,7 +679,16 @@
         // Set desktop as default active device
         setTimeout(() => {
           updateDeviceButtonStates('Desktop');
+          refreshCanvasForDevice('Desktop');
         }, 500);
+
+        // Listen for component changes to refresh mobile styles
+        editor.on('component:add component:remove component:update', () => {
+          const currentDevice = editor.getDevice();
+          if (currentDevice === 'Mobile') {
+            setTimeout(() => refreshCanvasForDevice('Mobile'), 100);
+          }
+        });
 
         // Check if this is a first-time user
         if (!editor.getComponents().length) {
@@ -747,6 +810,7 @@
         run(editor) {
           editor.setDevice('Desktop');
           updateDeviceButtonStates('Desktop');
+          refreshCanvasForDevice('Desktop');
           console.log('Switched to Desktop view');
         }
       });
@@ -755,9 +819,71 @@
         run(editor) {
           editor.setDevice('Mobile');
           updateDeviceButtonStates('Mobile');
+          refreshCanvasForDevice('Mobile');
           console.log('Switched to Mobile view');
         }
       });
+    }
+
+    // Refresh canvas and apply device-specific styles
+    function refreshCanvasForDevice(device) {
+      const canvas = editor.Canvas;
+      const canvasEl = canvas.getElement();
+      
+      // Update canvas data attribute for CSS targeting
+      canvasEl.setAttribute('data-device', device);
+      
+      // Force canvas refresh
+      setTimeout(() => {
+        canvas.refresh();
+        
+        // Apply device-specific styles to iframe content
+        const iframe = canvasEl.querySelector('iframe');
+        if (iframe && iframe.contentDocument) {
+          const iframeDoc = iframe.contentDocument;
+          const iframeHead = iframeDoc.head;
+          
+          // Remove existing device styles
+          const existingStyle = iframeHead.querySelector('#device-styles');
+          if (existingStyle) {
+            existingStyle.remove();
+          }
+          
+          // Add device-specific styles
+          const deviceStyles = iframeDoc.createElement('style');
+          deviceStyles.id = 'device-styles';
+          
+          if (device === 'Mobile') {
+            deviceStyles.textContent = `
+              /* Force group columns to stay side by side on mobile */
+              [data-mjml="mj-group"] {
+                direction: ltr !important;
+                display: table !important;
+                table-layout: fixed !important;
+                width: 100% !important;
+              }
+              
+              [data-mjml="mj-group"] [data-mjml="mj-column"] {
+                display: table-cell !important;
+                vertical-align: top !important;
+                width: 50% !important;
+                float: none !important;
+                box-sizing: border-box !important;
+              }
+              
+              /* Override MJML default mobile behavior for groups */
+              @media screen and (max-width: 480px) {
+                [data-mjml="mj-group"] [data-mjml="mj-column"] {
+                  display: table-cell !important;
+                  width: 50% !important;
+                }
+              }
+            `;
+          }
+          
+          iframeHead.appendChild(deviceStyles);
+        }
+      }, 100);
     }
 
     // Update device button states
@@ -784,23 +910,29 @@
         
         const blockManager = editor.BlockManager;
         
-        // Group component block
+        // Group component block with proper mobile behavior
         blockManager.add('mj-group', {
           label: 'Group',
           category: 'Layout',
           content: `
-            <mj-group>
-              <mj-column width="50%">
-                <mj-text>Column 1 Content</mj-text>
+            <mj-group width="100%">
+              <mj-column width="50%" padding="10px">
+                <mj-text font-size="14px" align="center" padding="15px" background-color="#e3f2fd" border-radius="4px">
+                  <strong>Column 1</strong><br/>
+                  Stays side-by-side on mobile
+                </mj-text>
               </mj-column>
-              <mj-column width="50%">
-                <mj-text>Column 2 Content</mj-text>
+              <mj-column width="50%" padding="10px">
+                <mj-text font-size="14px" align="center" padding="15px" background-color="#f3e5f5" border-radius="4px">
+                  <strong>Column 2</strong><br/>
+                  Stays side-by-side on mobile
+                </mj-text>
               </mj-column>
             </mj-group>
           `,
           attributes: { 
             class: 'fa-object-group', 
-            title: 'Group - Advanced column layouts with responsive behavior' 
+            title: 'Group - Columns stay side-by-side on mobile (unlike regular sections)' 
           }
         });
         
