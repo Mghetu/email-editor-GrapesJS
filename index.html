@@ -1,182 +1,891 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MJML Email Editor</title>
-  <link href="https://cdn.jsdelivr.net/npm/grapesjs@0.22.2/dist/css/grapes.min.css" rel="stylesheet" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Enhanced MJML Email Editor</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/grapesjs@0.22.2/dist/css/grapes.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    html, body { height: 100%; margin: 0; }
-    #gjs { height: 100%; }
-    /* Make default left blocks panel visible and comfy */
-    .gjs-blocks-cs { width: 260px; }
+    html, body { height: 100%; margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    #gjs { height: 100vh; overflow: hidden; }
+    
+    /* Enhanced Top Panel */
+    .panel__top { 
+      position: fixed; top: 0; left: 0; right: 0; 
+      display: flex; align-items: center; gap: 12px; 
+      padding: 10px 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+      border-bottom: 1px solid #e0e0e0; z-index: 999; 
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .editor-logo { 
+      font-size: 18px; font-weight: bold; color: white; 
+      margin-right: 20px; display: flex; align-items: center; gap: 8px;
+    }
+    
+    .panel__basic-actions { display: flex; gap: 8px; }
+    .panel__devices { margin-left: auto; display: flex; gap: 8px; }
+    .panel__right { position: fixed; right: 15px; top: 58px; display: flex; gap: 8px; z-index: 999; }
+    
+    /* Enhanced Button Styles */
+    .btn, .gjs-pn-btn { 
+      border-radius: 6px; padding: 8px 12px; font-size: 13px; 
+      transition: all 0.2s ease; border: none; cursor: pointer;
+      background: rgba(255,255,255,0.9); color: #333;
+    }
+    .btn:hover, .gjs-pn-btn:hover { 
+      background: white; transform: translateY(-1px); 
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .panel__right .gjs-pn-btn {
+      background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    
+    .gjs-cv-canvas { top: 54px !important; }
+    .gjs-blocks-cs { width: 280px; }
+    .gjs-pn-panel.gjs-pn-views-container { border-left: 1px solid #e0e0e0; }
+    
+    /* Template Modal */
+    .template-modal {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); z-index: 10000; display: none;
+      align-items: center; justify-content: center;
+    }
+    
+    .template-modal.active { display: flex; }
+    
+    .template-modal-content {
+      background: white; border-radius: 12px; max-width: 90vw; max-height: 90vh;
+      overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      display: flex; flex-direction: column; width: 800px;
+    }
+    
+    .template-modal-header {
+      padding: 20px 25px; border-bottom: 1px solid #e0e0e0;
+      display: flex; justify-content: space-between; align-items: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .template-modal-header h2 { margin: 0; font-size: 20px; }
+    
+    .close-modal {
+      background: none; border: none; color: white; font-size: 24px;
+      cursor: pointer; padding: 5px; border-radius: 4px;
+      transition: background 0.2s ease;
+    }
+    
+    .close-modal:hover { background: rgba(255,255,255,0.1); }
+    
+    .template-categories {
+      display: flex; gap: 10px; padding: 20px 25px; background: #f8f9fa;
+      border-bottom: 1px solid #e0e0e0; flex-wrap: wrap;
+    }
+    
+    .category-btn {
+      padding: 8px 16px; border: 1px solid #ddd; background: white;
+      border-radius: 20px; cursor: pointer; font-size: 13px;
+      transition: all 0.2s ease;
+    }
+    
+    .category-btn.active, .category-btn:hover {
+      background: #667eea; color: white; border-color: #667eea;
+    }
+    
+    .template-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px; padding: 25px; overflow-y: auto; max-height: 60vh;
+    }
+    
+    .template-item {
+      border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;
+      cursor: pointer; transition: all 0.2s ease; background: white;
+    }
+    
+    .template-item:hover {
+      transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      border-color: #667eea;
+    }
+    
+    .template-preview {
+      height: 180px; background: #f8f9fa; display: flex;
+      align-items: center; justify-content: center; color: #667eea;
+      font-size: 48px; position: relative; overflow: hidden;
+    }
+    
+    .template-preview::before {
+      content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+                  linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+                  linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
+                  linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+      opacity: 0.3;
+    }
+    
+    .template-preview i {
+      position: relative; z-index: 1;
+    }
+    
+    .template-info {
+      padding: 15px; border-top: 1px solid #e0e0e0; background: white;
+    }
+    
+    .template-name {
+      font-weight: 600; margin-bottom: 5px; color: #333;
+    }
+    
+    .template-description {
+      font-size: 12px; color: #666; line-height: 1.4;
+    }
+    
+    /* Brand Colors Panel */
+    .brand-colors {
+      position: fixed; right: 15px; top: 120px; background: white;
+      border-radius: 8px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      display: none; z-index: 998; min-width: 200px;
+    }
+    
+    .brand-colors.active { display: block; }
+    
+    .brand-colors h4 {
+      margin: 0 0 15px 0; font-size: 14px; color: #333;
+      display: flex; align-items: center; gap: 8px;
+    }
+    
+    .color-palette {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+    }
+    
+    .color-swatch {
+      width: 32px; height: 32px; border-radius: 4px; cursor: pointer;
+      border: 2px solid transparent; transition: all 0.2s ease;
+      position: relative;
+    }
+    
+    .color-swatch:hover {
+      border-color: #333; transform: scale(1.1);
+    }
+    
+    .color-swatch::after {
+      content: attr(title); position: absolute; bottom: -25px; left: 50%;
+      transform: translateX(-50%); font-size: 10px; color: #666;
+      white-space: nowrap; opacity: 0; transition: opacity 0.2s ease;
+    }
+    
+    .color-swatch:hover::after {
+      opacity: 1;
+    }
+    
+    /* Loading state */
+    .loading {
+      display: inline-block; width: 20px; height: 20px;
+      border: 3px solid #f3f3f3; border-top: 3px solid #667eea;
+      border-radius: 50%; animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Responsive enhancements */
+    @media (max-width: 768px) {
+      .panel__top { flex-wrap: wrap; padding: 8px; }
+      .panel__basic-actions { order: 2; width: 100%; justify-content: center; margin-top: 8px; }
+      .editor-logo { order: 1; }
+      .panel__devices { order: 3; margin-left: 0; }
+      .gjs-cv-canvas { top: 90px !important; }
+      .template-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+      .template-modal-content { width: 95vw; }
+      .panel__right { 
+        position: fixed; top: auto; bottom: 15px; right: 15px;
+        flex-direction: column; gap: 8px;
+      }
+      .brand-colors {
+        position: fixed; bottom: 100px; right: 15px; top: auto;
+      }
+    }
+    
+    /* Custom block styles */
+    .gjs-block {
+      border-radius: 6px; transition: all 0.2s ease;
+    }
+    
+    .gjs-block:hover {
+      transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
   </style>
 </head>
 <body>
   <div id="gjs"></div>
+  
+  <!-- Template Selection Modal -->
+  <div id="templateModal" class="template-modal">
+    <div class="template-modal-content">
+      <div class="template-modal-header">
+        <h2><i class="fas fa-palette"></i> Choose a Template</h2>
+        <button class="close-modal" onclick="closeTemplateModal()">&times;</button>
+      </div>
+      <div class="template-categories">
+        <button class="category-btn active" data-category="all">All Templates</button>
+        <button class="category-btn" data-category="newsletter">Newsletter</button>
+        <button class="category-btn" data-category="promotional">Promotional</button>
+        <button class="category-btn" data-category="welcome">Welcome</button>
+        <button class="category-btn" data-category="ecommerce">E-commerce</button>
+        <button class="category-btn" data-category="transactional">Transactional</button>
+      </div>
+      <div class="template-grid" id="templateGrid">
+        <!-- Templates will be populated by JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Brand Colors Panel -->
+  <div id="brandColors" class="brand-colors">
+    <h4><i class="fas fa-swatchbook"></i> Brand Colors</h4>
+    <div class="color-palette" id="colorPalette">
+      <!-- Colors will be populated by JavaScript -->
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/grapesjs@0.22.2"></script>
   <script src="https://cdn.jsdelivr.net/npm/grapesjs-mjml@1.0.5"></script>
   <script>
-    // ---------------------------------------------
-    // 1) Init editor with devices + style sectors
-    // ---------------------------------------------
-    const editor = grapesjs.init({
-      container: '#gjs',
-      height: '100%',
-      fromElement: false,
-      // Use local storage so edits persist (and we can still seed a starter template once)
-      storageManager: {
-        id: 'gjs-mjml-',
-        type: 'local',
-        autosave: true,
-        autoload: true,
-        stepsBeforeSave: 1,
-      },
-      plugins: ['grapesjs-mjml'],
-      deviceManager: {
-        devices: [
-          { name: 'Desktop', width: '' },
-          { name: 'Tablet',  width: '768px' },
-          { name: 'Mobile',  width: '320px' }
-        ]
-      },
-      styleManager: {
-        sectors: [
-          { name: 'Typography', open: false, buildProps: ['font-family','font-size','font-weight','letter-spacing','line-height','color','text-align','text-decoration'] },
-          { name: 'Dimension',  open: false, buildProps: ['width','min-height','padding','margin'] },
-          { name: 'Decorations',open: false, buildProps: ['background-color','border','border-radius','box-shadow'] },
-        ]
-      }
-    });
+    // Global variables
+    let editor;
+    let isInitialized = false;
 
-    // ---------------------------------------------
-    // 2) Ensure a valid MJML root so DnD works
-    //    (mjml -> mj-body) and open Block Manager
-    // ---------------------------------------------
-    editor.on('load', () => {
-      if (!editor.getComponents().length) {
-        editor.setComponents('<mjml><mj-body></mj-body></mjml>');
-      }
-      const openBlocksBtn = editor.Panels.getButton('views', 'open-blocks');
-      if (openBlocksBtn) openBlocksBtn.set('active', 1); // Show blocks by default
-    });
+    // Template library data with actual MJML content
+    const templates = {
+      newsletter: [
+        { 
+          name: 'Modern Newsletter', 
+          description: 'Clean and professional newsletter design', 
+          icon: 'fas fa-newspaper',
+          content: `<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-all font-family="Inter, Arial, sans-serif" />
+      <mj-text font-size="14px" line-height="22px" color="#333" />
+      <mj-section padding="0" />
+      <mj-column padding="20px" />
+    </mj-attributes>
+    <mj-preview>Modern Newsletter - Stay updated with our latest news</mj-preview>
+  </mj-head>
+  <mj-body background-color="#f8f9fa">
+    <mj-section background-color="#2c3e50" padding="20px 0">
+      <mj-column>
+        <mj-text color="white" font-size="24px" font-weight="bold" text-align="center">
+          Company Newsletter
+        </mj-text>
+        <mj-text color="#ecf0f1" font-size="14px" text-align="center">
+          Issue #42 | March 2025
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="white" padding="40px 20px">
+      <mj-column>
+        <mj-text font-size="20px" font-weight="600" color="#2c3e50">
+          This Month's Highlights
+        </mj-text>
+        <mj-divider border-color="#ecf0f1" border-width="2px" />
+        <mj-text>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        </mj-text>
+        <mj-button background-color="#3498db" color="white" border-radius="6px">
+          Read More
+        </mj-button>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>`
+        },
+        { 
+          name: 'Creative Weekly', 
+          description: 'Creative agency style newsletter', 
+          icon: 'fas fa-palette',
+          content: `<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-all font-family="Inter, Arial, sans-serif" />
+    </mj-attributes>
+    <mj-preview>Creative Weekly - Inspiration and Innovation</mj-preview>
+  </mj-head>
+  <mj-body background-color="#1a1a1a">
+    <mj-section background-color="#ff6b6b" padding="30px 0">
+      <mj-column>
+        <mj-text color="white" font-size="32px" font-weight="bold" text-align="center">
+          CREATIVE WEEKLY
+        </mj-text>
+        <mj-text color="white" font-size="16px" text-align="center">
+          Design • Innovation • Inspiration
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="white" padding="40px 20px">
+      <mj-column width="50%">
+        <mj-image src="https://via.placeholder.com/300x200/4ecdc4/white?text=Feature" border-radius="8px" />
+      </mj-column>
+      <mj-column width="50%">
+        <mj-text font-size="18px" font-weight="600" color="#2c3e50">
+          Featured Design
+        </mj-text>
+        <mj-text>
+          Discover the latest trends in creative design and get inspired by innovative projects.
+        </mj-text>
+        <mj-button background-color="#4ecdc4" color="white" border-radius="6px">
+          Explore
+        </mj-button>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>`
+        }
+      ],
+      promotional: [
+        { 
+          name: 'Sale Announcement', 
+          description: 'Eye-catching promotional template', 
+          icon: 'fas fa-tag',
+          content: `<mjml>
+  <mj-head>
+    <mj-preview>🔥 Flash Sale - Up to 50% Off Everything!</mj-preview>
+  </mj-head>
+  <mj-body background-color="#fff">
+    <mj-section background-color="#e74c3c" padding="40px 0">
+      <mj-column>
+        <mj-text color="white" font-size="36px" font-weight="bold" text-align="center">
+          FLASH SALE
+        </mj-text>
+        <mj-text color="white" font-size="18px" text-align="center">
+          Up to 50% OFF Everything
+        </mj-text>
+        <mj-text color="#ffeaa7" font-size="14px" text-align="center" padding="10px 0">
+          Limited Time Only - Ends Midnight!
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="white" padding="40px 20px">
+      <mj-column>
+        <mj-text font-size="20px" text-align="center" color="#2d3436">
+          Don't miss out on these incredible deals!
+        </mj-text>
+        <mj-button background-color="#e17055" color="white" font-size="16px" border-radius="25px" padding="15px 30px">
+          SHOP NOW
+        </mj-button>
+        <mj-text font-size="12px" text-align="center" color="#636e72" padding="20px 0">
+          *Terms and conditions apply. Valid until midnight EST.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>`
+        }
+      ],
+      welcome: [
+        { 
+          name: 'Welcome Series', 
+          description: 'Onboard new users with style', 
+          icon: 'fas fa-hand-wave',
+          content: `<mjml>
+  <mj-head>
+    <mj-preview>Welcome to our community! Let's get started.</mj-preview>
+  </mj-head>
+  <mj-body background-color="#f8f9fa">
+    <mj-section background-color="#667eea" padding="50px 0">
+      <mj-column>
+        <mj-text color="white" font-size="28px" font-weight="bold" text-align="center">
+          Welcome Aboard! 👋
+        </mj-text>
+        <mj-text color="white" font-size="16px" text-align="center" padding="15px 0">
+          We're thrilled to have you join our community
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="white" padding="40px 20px">
+      <mj-column>
+        <mj-text font-size="18px" font-weight="600" color="#2c3e50">
+          Here's what happens next:
+        </mj-text>
+        <mj-text>
+          ✅ Set up your profile<br>
+          ✅ Explore our features<br>
+          ✅ Connect with the community<br>
+          ✅ Start creating amazing content
+        </mj-text>
+        <mj-button background-color="#00cec9" color="white" border-radius="6px">
+          Get Started
+        </mj-button>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>`
+        }
+      ],
+      ecommerce: [
+        { 
+          name: 'Product Showcase', 
+          description: 'Showcase your products beautifully', 
+          icon: 'fas fa-shopping-cart',
+          content: `<mjml>
+  <mj-head>
+    <mj-preview>New arrivals - Check out our latest collection</mj-preview>
+  </mj-head>
+  <mj-body background-color="#f8f9fa">
+    <mj-section background-color="#2d3436" padding="30px 0">
+      <mj-column>
+        <mj-text color="white" font-size="24px" font-weight="bold" text-align="center">
+          NEW ARRIVALS
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="white" padding="40px 20px">
+      <mj-column width="50%">
+        <mj-image src="https://via.placeholder.com/300x300/6c5ce7/white?text=Product+1" border-radius="8px" />
+        <mj-text font-weight="bold" font-size="16px" text-align="center" padding="10px 0 5px">
+          Premium Product
+        </mj-text>
+        <mj-text color="#00b894" font-size="18px" font-weight="bold" text-align="center">
+          $99.99
+        </mj-text>
+        <mj-button background-color="#6c5ce7" color="white" border-radius="6px" padding="10px 20px">
+          Shop Now
+        </mj-button>
+      </mj-column>
+      <mj-column width="50%">
+        <mj-image src="https://via.placeholder.com/300x300/fd79a8/white?text=Product+2" border-radius="8px" />
+        <mj-text font-weight="bold" font-size="16px" text-align="center" padding="10px 0 5px">
+          Exclusive Item
+        </mj-text>
+        <mj-text color="#00b894" font-size="18px" font-weight="bold" text-align="center">
+          $149.99
+        </mj-text>
+        <mj-button background-color="#fd79a8" color="white" border-radius="6px" padding="10px 20px">
+          Shop Now
+        </mj-button>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>`
+        }
+      ],
+      transactional: [
+        { 
+          name: 'Order Confirmation', 
+          description: 'Professional order confirmations', 
+          icon: 'fas fa-check-circle',
+          content: `<mjml>
+  <mj-head>
+    <mj-preview>Order Confirmation #12345 - Thank you for your purchase!</mj-preview>
+  </mj-head>
+  <mj-body background-color="#f8f9fa">
+    <mj-section background-color="#00b894" padding="30px 0">
+      <mj-column>
+        <mj-text color="white" font-size="24px" font-weight="bold" text-align="center">
+          Order Confirmed ✅
+        </mj-text>
+        <mj-text color="white" font-size="16px" text-align="center">
+          Order #12345
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="white" padding="40px 20px">
+      <mj-column>
+        <mj-text font-size="18px" font-weight="600" color="#2c3e50">
+          Thank you for your order!
+        </mj-text>
+        <mj-text>
+          We've received your order and will send you a shipping confirmation email as soon as your items are on their way.
+        </mj-text>
+        <mj-divider border-color="#ddd" />
+        <mj-text font-size="16px" font-weight="600" color="#2c3e50">
+          Order Summary:
+        </mj-text>
+        <mj-text>
+          Product Name x1 - $99.99<br>
+          Shipping - $9.99<br>
+          <strong>Total: $109.98</strong>
+        </mj-text>
+        <mj-button background-color="#0984e3" color="white" border-radius="6px">
+          Track Your Order
+        </mj-button>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>`
+        }
+      ]
+    };
 
-    // ---------------------------------------------
-    // 3) Device buttons (Desktop / Tablet / Mobile)
-    //    Add to the default 'options' panel to avoid duplicate top bars
-    // ---------------------------------------------
-    const addOptBtn = (id, label, command, title) => editor.Panels.addButton('options', { id, label, command, attributes: { title } });
-    addOptBtn('set-desktop', 'Desktop', ed => ed.setDevice('Desktop'), 'Preview: Desktop');
-    addOptBtn('set-tablet',  'Tablet',  ed => ed.setDevice('Tablet'),  'Preview: Tablet (768px)');
-    addOptBtn('set-mobile',  'Mobile',  ed => ed.setDevice('Mobile'),  'Preview: Mobile (320px)');
+    // Brand colors
+    const brandColors = [
+      '#667eea', '#764ba2', '#f093fb', '#f5576c',
+      '#4facfe', '#00f2fe', '#43e97b', '#38f9d7',
+      '#ffecd2', '#fcb69f', '#a8edea', '#fed6e3',
+      '#ff9a9e', '#fecfef', '#ffecd2', '#fcb69f'
+    ];
 
-    // ---------------------------------------------
-    // 4) MJML toggles
-    //    A) Toggle <mj-group> inside selected <mj-section>
-    //    B) Toggle fluid-on-mobile on selected <mj-image>
-    // ---------------------------------------------
-    editor.Commands.add('toggle-mj-group', {
-      run(ed) {
-        const sel = ed.getSelected();
-        if (!sel) return alert('Select an <mj-section> first.');
-        if (sel.get('type') !== 'mj-section') return alert('This action works on <mj-section> only.');
+    // Initialize editor
+    function initializeEditor() {
+      try {
+        editor = grapesjs.init({
+          container: '#gjs',
+          height: '100vh',
+          fromElement: false,
+          storageManager: {
+            id: 'enhanced-mjml-',
+            type: 'local',
+            autosave: true,
+            autoload: true,
+            stepsBeforeSave: 1,
+          },
+          deviceManager: {
+            devices: [
+              { name: 'Desktop', width: '' },
+              { name: 'Tablet', width: '768px' },
+              { name: 'Mobile', width: '320px' }
+            ]
+          },
+          plugins: ['grapesjs-mjml'],
+          pluginsOpts: { 'grapesjs-mjml': {} },
+          styleManager: {
+            sectors: [
+              {
+                name: 'Typography', open: false,
+                buildProps: ['font-family', 'font-size', 'font-weight', 'letter-spacing', 'line-height', 'color', 'text-align', 'text-decoration', 'text-transform']
+              },
+              {
+                name: 'Dimension', open: false,
+                buildProps: ['width', 'height', 'min-height', 'max-width', 'padding', 'margin']
+              },
+              {
+                name: 'Decorations', open: false,
+                buildProps: ['background-color', 'background-image', 'border', 'border-radius', 'box-shadow', 'opacity']
+              },
+              {
+                name: 'Layout', open: false,
+                buildProps: ['display', 'position', 'top', 'right', 'bottom', 'left', 'z-index']
+              }
+            ]
+          },
+          canvas: {
+            styles: [
+              'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
+            ]
+          }
+        });
 
-        const children = sel.components();
-        if (!children.length) return alert('Section has no children.');
+        setupPanels();
+        setupCommands();
+        setupCustomBlocks();
+        
+        isInitialized = true;
 
-        // If already grouped (any child is mj-group), unwrap all groups
-        const groups = children.models.filter(c => c.get('type') === 'mj-group');
-        if (groups.length) {
-          groups.forEach(g => {
-            const cols = [...g.components().models];
-            cols.forEach(col => sel.append(col));
-            g.remove();
-          });
-          return;
+        // Check if this is a first-time user
+        if (!editor.getComponents().length) {
+          setTimeout(() => {
+            const modal = document.getElementById('templateModal');
+            if (modal) {
+              modal.classList.add('active');
+            }
+          }, 1000);
         }
 
-        // Create a single group and move all columns into it
-        const group = sel.append({ type: 'mj-group' }, { at: 0 });
-        // snapshot because we'll mutate the collection while moving
-        const colsToMove = children.models.filter(c => c.get('type') === 'mj-column');
-        if (!colsToMove.length) return alert('No <mj-column> found to group.');
-        colsToMove.forEach(col => group.append(col));
+      } catch (error) {
+        console.error('Error initializing editor:', error);
       }
-    });
+    }
 
-    editor.Commands.add('toggle-fluid-on-mobile', {
-      run(ed) {
-        const sel = ed.getSelected();
-        if (!sel) return alert('Select an <mj-image> first.');
-        if (sel.get('type') !== 'mj-image') return alert('This action works on <mj-image> only.');
-        const curr = sel.getAttributes()['fluid-on-mobile'];
-        if (curr) sel.addAttributes({ 'fluid-on-mobile': null });
-        else sel.addAttributes({ 'fluid-on-mobile': 'true' });
-      }
-    });
+    // Set up panels
+    function setupPanels() {
+      const pn = editor.Panels;
+      
+      // Create panel containers
+      pn.addPanel({ id: 'panel__top', el: document.body.appendChild(Object.assign(document.createElement('div'), { className: 'panel__top' })) });
+      pn.addPanel({ id: 'panel__basic-actions', el: (() => { const el = document.createElement('div'); el.className = 'panel__basic-actions'; document.querySelector('.panel__top').appendChild(el); return el; })() });
+      pn.addPanel({ id: 'panel__devices', el: (() => { const el = document.createElement('div'); el.className = 'panel__devices'; document.querySelector('.panel__top').appendChild(el); return el; })() });
+      pn.addPanel({ id: 'panel__right', el: (() => { const el = document.createElement('div'); el.className = 'panel__right'; document.body.appendChild(el); return el; })() });
 
-    addOptBtn('toggle-group', 'Group cols', 'toggle-mj-group', 'Toggle <mj-group> in selected <mj-section>');
-    addOptBtn('toggle-fluid', 'Fluid img', 'toggle-fluid-on-mobile', 'Toggle fluid-on-mobile on selected <mj-image>');
+      // Add logo
+      const logo = document.createElement('div');
+      logo.className = 'editor-logo';
+      logo.innerHTML = '<i class="fas fa-envelope"></i> Email Designer Pro';
+      document.querySelector('.panel__top').insertBefore(logo, document.querySelector('.panel__basic-actions'));
 
-    // ---------------------------------------------
-    // 5) Custom Block Library (JSON-based, MJML-safe)
-    // ---------------------------------------------
-    const bm = editor.BlockManager;
-    const BLOCKS_KEY = 'gjs-mjml-user-blocks-v2';
-    const readBlocks = () => { try { return JSON.parse(localStorage.getItem(BLOCKS_KEY) || '[]'); } catch(e){ return []; } };
-    const writeBlocks = (arr) => localStorage.setItem(BLOCKS_KEY, JSON.stringify(arr));
-    const registerBlock = (b) => bm.add(b.id, { label: b.name, category: 'My Blocks', content: b.content });
+      const addBtn = (panelId, opts) => pn.addButton(panelId, opts);
+      
+      // Basic actions
+      addBtn('panel__basic-actions', { id: 'templates', className: 'gjs-pn-btn', label: '<i class="fas fa-th-large"></i> Templates', command: 'open-templates' });
+      addBtn('panel__basic-actions', { id: 'undo', className: 'gjs-pn-btn', label: '<i class="fas fa-undo"></i> Undo', command: 'core:undo' });
+      addBtn('panel__basic-actions', { id: 'redo', className: 'gjs-pn-btn', label: '<i class="fas fa-redo"></i> Redo', command: 'core:redo' });
+      addBtn('panel__basic-actions', { id: 'import', className: 'gjs-pn-btn', label: '<i class="fas fa-upload"></i> Import', command: 'gjs-open-importer' });
+      addBtn('panel__basic-actions', { id: 'export', className: 'gjs-pn-btn', label: '<i class="fas fa-download"></i> Export', command: 'export-template' });
+      addBtn('panel__basic-actions', { id: 'preview', className: 'gjs-pn-btn', label: '<i class="fas fa-eye"></i> Preview', command: 'preview' });
+      addBtn('panel__basic-actions', { id: 'fullscreen', className: 'gjs-pn-btn', label: '<i class="fas fa-expand"></i> Full', command: 'fullscreen' });
+      addBtn('panel__basic-actions', { id: 'clear', className: 'gjs-pn-btn', label: '<i class="fas fa-trash"></i> Clear', command: 'clear-canvas' });
 
-    // Save selected component as a reusable block (keeps MJML component JSON, not HTML)
-    editor.Commands.add('save-as-block', {
-      run(ed) {
-        const sel = ed.getSelected();
-        if (!sel) return alert('Select a component first.');
-        const name = prompt('Block name:', sel.getName() || sel.get('type') || 'My Block');
-        if (!name) return;
-        const json = sel.toJSON();
-        const clean = JSON.parse(JSON.stringify(json));
-        delete clean.id; // avoid id collisions on reuse
-        const block = { id: `user-block-${Date.now()}`, name, content: clean };
-        const list = readBlocks();
-        list.push(block); writeBlocks(list); registerBlock(block);
-        alert(`Saved block "${name}" under My Blocks.`);
-      }
-    });
+      // Device buttons
+      addBtn('panel__devices', { id: 'device-desktop', className: 'gjs-pn-btn', label: '<i class="fas fa-desktop"></i> Desktop', command: e => e.setDevice('Desktop') });
+      addBtn('panel__devices', { id: 'device-tablet', className: 'gjs-pn-btn', label: '<i class="fas fa-tablet-alt"></i> Tablet', command: e => e.setDevice('Tablet') });
+      addBtn('panel__devices', { id: 'device-mobile', className: 'gjs-pn-btn', label: '<i class="fas fa-mobile-alt"></i> Mobile',  command: e => e.setDevice('Mobile') });
 
-    // Simple manager to list/delete saved blocks
-    editor.Commands.add('manage-blocks', {
-      run(ed) {
-        const list = readBlocks();
-        const modal = ed.Modal;
-        const wrap = document.createElement('div');
-        wrap.innerHTML = '<h3 style="margin:0 0 8px;">My Blocks</h3>';
-        const body = document.createElement('div');
-        if (!list.length) body.textContent = 'No saved blocks yet.';
-        list.forEach(b => {
-          const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.alignItems='center'; row.style.padding='6px 0'; row.style.borderBottom='1px dashed #ddd';
-          const name = document.createElement('div'); name.textContent = b.name;
-          const del = document.createElement('button'); del.textContent = 'Delete';
-          del.onclick = () => {
-            const fresh = readBlocks().filter(x => x.id !== b.id);
-            writeBlocks(fresh); bm.remove(b.id); row.remove();
-          };
-          row.append(name, del); body.appendChild(row);
+      // Right panel buttons
+      addBtn('panel__right', { id: 'open-sm', className: 'gjs-pn-btn', label: '<i class="fas fa-paint-brush"></i> Style', command: 'open-sm' });
+      addBtn('panel__right', { id: 'open-layers', className: 'gjs-pn-btn', label: '<i class="fas fa-layer-group"></i> Layers', command: 'open-layers' });
+      addBtn('panel__right', { id: 'open-traits', className: 'gjs-pn-btn', label: '<i class="fas fa-cog"></i> Settings', command: 'open-traits' });
+      addBtn('panel__right', { id: 'brand-colors', className: 'gjs-pn-btn', label: '<i class="fas fa-swatchbook"></i> Colors', command: 'toggle-brand-colors' });
+    }
+
+    // Set up commands
+    function setupCommands() {
+      editor.Commands.add('open-templates', {
+        run() {
+          const modal = document.getElementById('templateModal');
+          if (modal) {
+            modal.classList.add('active');
+          }
+        }
+      });
+
+      editor.Commands.add('toggle-brand-colors', {
+        run() {
+          const panel = document.getElementById('brandColors');
+          if (panel) {
+            panel.classList.toggle('active');
+          }
+        }
+      });
+
+      editor.Commands.add('clear-canvas', {
+        run(ed) {
+          if (confirm('Clear the canvas and start fresh?')) {
+            ed.DomComponents.clear();
+            ed.CssComposer.clear();
+            ed.setComponents('<mjml><mj-body></mj-body></mjml>');
+          }
+        }
+      });
+    }
+
+    // Set up custom blocks
+    function setupCustomBlocks() {
+      editor.on('load', () => {
+        const openBlocks = editor.Panels.getButton('views', 'open-blocks');
+        if (openBlocks) openBlocks.set('active', 1);
+        
+        const blockManager = editor.BlockManager;
+        
+        // Hero section block
+        blockManager.add('hero-section', {
+          label: 'Hero Section',
+          category: 'Layout',
+          content: `
+            <mj-section background-color="#667eea" padding="60px 0">
+              <mj-column>
+                <mj-text color="white" font-size="28px" font-weight="bold" text-align="center">
+                  Your Amazing Headline
+                </mj-text>
+                <mj-text color="white" font-size="16px" text-align="center" padding="20px 0">
+                  Describe your amazing product or service here. Make it compelling and engaging.
+                </mj-text>
+                <mj-button background-color="white" color="#667eea" font-weight="bold">
+                  Get Started
+                </mj-button>
+              </mj-column>
+            </mj-section>
+          `,
+          attributes: { class: 'fas fa-star' }
         });
-        wrap.appendChild(body);
-        modal.open({ title: 'Manage Saved Blocks', content: wrap });
+
+        // Product showcase block
+        blockManager.add('product-showcase', {
+          label: 'Product Grid',
+          category: 'E-commerce',
+          content: `
+            <mj-section padding="40px 0">
+              <mj-column width="50%">
+                <mj-image src="https://via.placeholder.com/300x200/667eea/white?text=Product" alt="Product" border-radius="8px" />
+                <mj-text font-weight="bold" font-size="18px" padding="15px 0 5px">Product Name</mj-text>
+                <mj-text color="#666" font-size="14px">$99.99</mj-text>
+                <mj-button background-color="#667eea" border-radius="6px" padding="10px 0">
+                  Shop Now
+                </mj-button>
+              </mj-column>
+              <mj-column width="50%">
+                <mj-image src="https://via.placeholder.com/300x200/764ba2/white?text=Product" alt="Product" border-radius="8px" />
+                <mj-text font-weight="bold" font-size="18px" padding="15px 0 5px">Product Name</mj-text>
+                <mj-text color="#666" font-size="14px">$99.99</mj-text>
+                <mj-button background-color="#764ba2" border-radius="6px" padding="10px 0">
+                  Shop Now
+                </mj-button>
+              </mj-column>
+            </mj-section>
+          `,
+          attributes: { class: 'fas fa-shopping-cart' }
+        });
+
+        // Social media block
+        blockManager.add('social-media', {
+          label: 'Social Links',
+          category: 'Social',
+          content: `
+            <mj-section padding="30px 0">
+              <mj-column>
+                <mj-text text-align="center" font-size="18px" font-weight="bold" padding="0 0 20px">
+                  Follow Us
+                </mj-text>
+                <mj-social font-size="15px" icon-size="30px" mode="horizontal" padding="0" text-padding="0 15px 0 0">
+                  <mj-social-element name="facebook" href="#" />
+                  <mj-social-element name="twitter" href="#" />
+                  <mj-social-element name="instagram" href="#" />
+                  <mj-social-element name="linkedin" href="#" />
+                </mj-social>
+              </mj-column>
+            </mj-section>
+          `,
+          attributes: { class: 'fab fa-facebook' }
+        });
+      });
+    }
+
+    // Template functions
+    function populateTemplateGrid() {
+      const grid = document.getElementById('templateGrid');
+      if (!grid) return;
+      
+      grid.innerHTML = '';
+      
+      Object.keys(templates).forEach(category => {
+        templates[category].forEach(template => {
+          const item = document.createElement('div');
+          item.className = 'template-item';
+          item.dataset.category = category;
+          item.innerHTML = `
+            <div class="template-preview">
+              <i class="${template.icon}"></i>
+            </div>
+            <div class="template-info">
+              <div class="template-name">${template.name}</div>
+              <div class="template-description">${template.description}</div>
+            </div>
+          `;
+          item.addEventListener('click', () => loadTemplate(template));
+          grid.appendChild(item);
+        });
+      });
+    }
+
+    function loadTemplate(template) {
+      if (!editor || !isInitialized) {
+        console.error('Editor not initialized');
+        return;
       }
+
+      try {
+        if (template.content) {
+          editor.setComponents(template.content);
+          editor.setStyle('');
+        } else {
+          console.warn('Template has no content');
+        }
+        closeTemplateModal();
+      } catch (error) {
+        console.error('Error loading template:', error);
+      }
+    }
+
+    function closeTemplateModal() {
+      const modal = document.getElementById('templateModal');
+      if (modal) {
+        modal.classList.remove('active');
+      }
+    }
+
+    function filterTemplates(category) {
+      const items = document.querySelectorAll('.template-item');
+      items.forEach(item => {
+        if (category === 'all' || item.dataset.category === category) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    function populateBrandColors() {
+      const palette = document.getElementById('colorPalette');
+      if (!palette) return;
+      
+      palette.innerHTML = '';
+      brandColors.forEach(color => {
+        const swatch = document.createElement('div');
+        swatch.className = 'color-swatch';
+        swatch.style.backgroundColor = color;
+        swatch.title = color;
+        swatch.addEventListener('click', () => {
+          if (editor && isInitialized) {
+            const selected = editor.getSelected();
+            if (selected) {
+              selected.addStyle({ 'background-color': color });
+            } else {
+              // Copy color to clipboard
+              navigator.clipboard.writeText(color).then(() => {
+                console.log('Color copied to clipboard:', color);
+              });
+            }
+          }
+        });
+        palette.appendChild(swatch);
+      });
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize editor
+      initializeEditor();
+      
+      // Populate UI elements
+      populateTemplateGrid();
+      populateBrandColors();
+      
+      // Category filter
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+          e.target.classList.add('active');
+          filterTemplates(e.target.dataset.category);
+        });
+      });
+      
+      // Close modal on outside click
+      const templateModal = document.getElementById('templateModal');
+      if (templateModal) {
+        templateModal.addEventListener('click', (e) => {
+          if (e.target.classList.contains('template-modal')) {
+            closeTemplateModal();
+          }
+        });
+      }
+
+      // Close brand colors panel when clicking outside
+      document.addEventListener('click', (e) => {
+        const brandColors = document.getElementById('brandColors');
+        const brandColorBtn = document.querySelector('[data-command="toggle-brand-colors"]');
+        
+        if (brandColors && !brandColors.contains(e.target) && e.target !== brandColorBtn) {
+          brandColors.classList.remove('active');
+        }
+      });
     });
 
-    addOptBtn('save-block', 'Save Block', 'save-as-block', 'Save selected component as reusable block');
-    addOptBtn('manage-blocks', 'My Blocks', 'manage-blocks', 'List/Delete saved blocks');
+    // Global functions for HTML onclick handlers
+    window.closeTemplateModal = closeTemplateModal;
 
-    // Register saved blocks at load
-    editor.on('load', () => {
-      readBlocks().forEach(registerBlock);
-    });
-
-    // Expose for debugging
+    // Export editor globally for debugging
     window.editor = editor;
   </script>
 </body>
