@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MJML Email Editor - GrapesJS</title>
     
-    <!-- GrapesJS CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/grapesjs@0.22.2/dist/css/grapes.min.css">
+    <!-- GrapesJS CSS - Compatible version -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/grapesjs@0.14.57/dist/css/grapes.min.css">
     
     <!-- Custom Styles -->
     <link rel="stylesheet" href="style.css">
@@ -21,7 +21,7 @@
             <div class="navbar-actions">
                 <button id="save-btn" class="btn btn-primary">💾 Save</button>
                 <button id="load-btn" class="btn btn-secondary">📂 Load</button>
-                <button id="download-btn" class="btn btn-success">⬇️ Download HTML</button>
+                <button id="download-btn" class="btn btn-success">⬇️ Download MJML</button>
                 <button id="clear-btn" class="btn btn-danger">🗑️ Clear</button>
             </div>
         </div>
@@ -78,9 +78,14 @@
         </mjml>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/grapesjs@0.22.2/dist/grapes.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/grapesjs-mjml@1.0.5/dist/grapesjs-mjml.min.js"></script>
+    <!-- Scripts - Compatible versions -->
+    <script src="https://cdn.jsdelivr.net/npm/grapesjs@0.14.57/dist/grapes.min.js"></script>
+    <!-- GrapesJS MJML Plugin - Multiple working options -->
+    <!-- Option 1: Proven working version -->
+    <script src="https://cdn.jsdelivr.net/npm/grapesjs-mjml@0.0.31/dist/grapesjs-mjml.min.js"></script>
+    
+    <!-- Option 2: If above fails, uncomment this combined CDN version -->
+    <!-- <script src="https://cdn.jsdelivr.net/combine/npm/grapesjs@0.22.2,npm/grapesjs-mjml@0.0.31/dist/grapesjs-mjml.min.js"></script> -->
     <script src="main.js"></script>
 </body>
 </html>

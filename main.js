@@ -24,37 +24,12 @@ function initEditor() {
         // Storage configuration (disabled to use custom localStorage)
         storageManager: false,
         
-        // Plugin configuration
+        // Plugin configuration - Using stable 0.0.31 version
         plugins: ['grapesjs-mjml'],
         pluginsOpts: {
             'grapesjs-mjml': {
-                // MJML plugin options
-                categoryLabel: 'MJML Components',
-                
-                // Custom blocks configuration
-                blocks: ['mj-1-column', 'mj-2-columns', 'mj-3-columns', 'mj-text', 'mj-image', 'mj-button', 'mj-social', 'mj-divider', 'mj-spacer', 'mj-hero', 'mj-navbar'],
-                
-                // Add custom group component
-                customComponents: [
-                    {
-                        type: 'mj-group',
-                        content: `
-                            <mj-group>
-                                <mj-column width="50%">
-                                    <mj-text>Column 1</mj-text>
-                                </mj-column>
-                                <mj-column width="50%">
-                                    <mj-text>Column 2</mj-text>
-                                </mj-column>
-                            </mj-group>
-                        `,
-                        category: 'MJML Components',
-                        attributes: {
-                            name: 'Group',
-                            content: 'Group component for advanced layouts'
-                        }
-                    }
-                ]
+                // MJML plugin options for v0.0.31
+                categoryLabel: 'MJML Components'
             }
         },
         
@@ -66,25 +41,11 @@ function initEditor() {
             scripts: []
         },
         
-        // Panel configuration
+        // Panel configuration - Simplified for compatibility
         panels: {
             defaults: [
                 {
-                    id: 'layers',
-                    el: '.panel__right',
-                    resizable: {
-                        maxDim: 350,
-                        minDim: 200,
-                        tc: 0,
-                        cl: 1,
-                        cr: 0,
-                        bc: 0,
-                        keyWidth: 'flex-basis',
-                    },
-                },
-                {
-                    id: 'panel-switcher',
-                    el: '.panel__switcher',
+                    id: 'commands',
                     buttons: [
                         {
                             id: 'show-layers',
@@ -98,105 +59,46 @@ function initEditor() {
                             label: 'Styles',
                             command: 'show-styles',
                             togglable: false,
-                        }, {
-                            id: 'show-traits',
-                            active: true,
-                            label: 'Settings',
-                            command: 'show-traits',
-                            togglable: false,
                         }
                     ],
                 }
             ]
-        },
+        }
+    });,
         
-        // Block manager configuration
+        // Block manager configuration - Simplified
         blockManager: {
-            appendTo: '.blocks-container',
-            blocks: []
+            appendTo: '.blocks-container'
         },
         
-        // Style manager configuration
+        // Style manager configuration - Simplified  
         styleManager: {
-            appendTo: '.styles-container',
-            sectors: [
-                {
-                    name: 'Dimension',
-                    open: false,
-                    buildProps: ['width', 'min-height', 'padding'],
-                    properties: [
-                        {
-                            type: 'integer',
-                            name: 'Width',
-                            property: 'width',
-                            units: ['px', '%'],
-                            defaults: 'auto',
-                            min: 0,
-                        }
-                    ]
-                }, {
-                    name: 'Typography',
-                    open: false,
-                    buildProps: ['font-family', 'font-size', 'font-weight', 'letter-spacing', 'color', 'line-height'],
-                    properties: [
-                        {
-                            name: 'Font',
-                            property: 'font-family'
-                        }, {
-                            name: 'Weight',
-                            property: 'font-weight'
-                        }, {
-                            name: 'Font Color',
-                            property: 'color',
-                        }
-                    ]
-                }, {
-                    name: 'Decorations',
-                    open: false,
-                    buildProps: ['background-color', 'border-radius', 'border', 'box-shadow'],
-                    properties: [
-                        {
-                            name: 'Background Color',
-                            property: 'background-color',
-                        }
-                    ]
-                }, {
-                    name: 'Extra',
-                    open: false,
-                    buildProps: ['transition', 'perspective', 'transform'],
-                    properties: []
-                }
-            ]
+            appendTo: '.styles-container'
         },
         
-        // Layer manager configuration
+        // Layer manager configuration - Simplified
         layerManager: {
             appendTo: '.layers-container'
         },
         
-        // Trait manager configuration (Properties panel)
+        // Trait manager configuration - Simplified
         traitManager: {
-            appendTo: '.traits-container',
+            appendTo: '.traits-container'
         },
         
-        // Device manager for responsive design
+        // Device manager for responsive design - Simplified
         deviceManager: {
             devices: [
                 {
                     name: 'Desktop',
-                    width: '',
+                    width: ''
                 }, {
                     name: 'Mobile',
-                    width: '320px',
-                    widthMedia: '480px',
+                    width: '320px'
                 }
             ]
-        },
-        
-        // Asset manager configuration
-        assetManager: {
-            embedAsBase64: true,
         }
+    });
     });
     
     // Setup editor events and commands
@@ -215,27 +117,11 @@ function initEditor() {
 function setupEditorEvents() {
     // Auto-save on content change (debounced)
     let saveTimeout;
-    editor.on('component:update storage:load', () => {
+    editor.on('component:update', () => {
         clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => {
             autoSave();
         }, 2000); // Auto-save after 2 seconds of inactivity
-    });
-    
-    // Update custom panels visibility
-    editor.on('run:show-layers', () => {
-        const lm = editor.LayerManager;
-        lm.render('.layers-container');
-    });
-    
-    editor.on('run:show-styles', () => {
-        const sm = editor.StyleManager;
-        sm.render('.styles-container');
-    });
-    
-    editor.on('run:show-traits', () => {
-        const tm = editor.TraitManager;
-        tm.render('.traits-container');
     });
 }
 
@@ -243,23 +129,6 @@ function setupEditorEvents() {
  * Setup custom commands
  */
 function setupCustomCommands() {
-    // Add command to export MJML to HTML
-    editor.Commands.add('export-mjml', {
-        run: function(editor) {
-            const mjml = editor.getHtml();
-            const css = editor.getCss();
-            
-            try {
-                // Use the MJML parser from the plugin to convert to HTML
-                const mjmlToHtml = editor.runCommand('mjml-get-code');
-                return mjmlToHtml;
-            } catch (error) {
-                console.error('Error converting MJML to HTML:', error);
-                return mjml; // Fallback to raw MJML
-            }
-        }
-    });
-    
     // Add command to clear the canvas
     editor.Commands.add('clear-canvas', {
         run: function(editor) {
@@ -425,33 +294,23 @@ function downloadHTML() {
     try {
         // Get MJML code
         const mjmlCode = editor.getHtml();
+        const cssCode = editor.getCss();
         
-        // Try to get compiled HTML if MJML plugin supports it
-        let htmlContent = mjmlCode;
-        
-        // Check if mjml-browser is available (from the plugin)
-        if (window.mjml && window.mjml.mjml2html) {
-            try {
-                const result = window.mjml.mjml2html(mjmlCode);
-                htmlContent = result.html;
-            } catch (error) {
-                console.log('MJML compilation not available, downloading MJML code instead');
-            }
-        }
-        
-        // Create HTML document
+        // For the stable v0.0.31, we'll download the MJML code
+        // Users can compile it separately using MJML tools
         const fullHTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Template</title>
+    <title>MJML Email Template</title>
     <style>
-        ${editor.getCss()}
+        ${cssCode}
     </style>
 </head>
 <body>
-    ${htmlContent}
+    <!-- MJML Template - Use https://mjml.io/try-it-live to compile to HTML -->
+    ${mjmlCode}
 </body>
 </html>`;
         
@@ -460,16 +319,17 @@ function downloadHTML() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `email-template-${new Date().getTime()}.html`;
+        a.download = `mjml-template-${new Date().getTime()}.html`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         
-        console.log('HTML email downloaded successfully');
+        alert('MJML template downloaded! Use https://mjml.io/try-it-live to compile to HTML.');
+        console.log('MJML template downloaded successfully');
     } catch (error) {
-        console.error('Error downloading HTML:', error);
-        alert('Error downloading HTML. Please try again.');
+        console.error('Error downloading template:', error);
+        alert('Error downloading template. Please try again.');
     }
 }
 
