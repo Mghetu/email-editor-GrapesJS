@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Enhanced MJML Email Editor - Fixed</title>
+  <title>Enhanced MJML Email Editor - Mobile & Group Fixed</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/grapesjs@0.22.2/dist/css/grapes.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
@@ -25,6 +25,15 @@
     .panel__right .gjs-pn-btn:hover { 
       background: #f8f9fa; transform: translateY(-1px); 
       box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    /* Active device button styling */
+    .panel__right .gjs-pn-btn.gjs-pn-active {
+      background: #667eea; color: white;
+    }
+    
+    .panel__right .gjs-pn-btn.gjs-pn-active:hover {
+      background: #5a6fd8; transform: translateY(-1px);
     }
     
     .gjs-blocks-cs { width: 280px; }
@@ -306,7 +315,7 @@
     </mj-section>
     <mj-section background-color="white" padding="40px 20px">
       <mj-column width="50%">
-        <mj-image src="https://via.placeholder.com/300x200/4ecdc4/white?text=Feature" border-radius="8px" />
+        <mj-image src="https://picsum.photos/300/200?random=1" border-radius="8px" />
       </mj-column>
       <mj-column width="50%">
         <mj-text font-size="18px" font-weight="600" color="#2c3e50">
@@ -423,7 +432,7 @@
     </mj-section>
     <mj-section background-color="white" padding="40px 20px">
       <mj-column width="50%">
-        <mj-image src="https://via.placeholder.com/300x300/6c5ce7/white?text=Product+1" border-radius="8px" />
+        <mj-image src="https://picsum.photos/300/300?random=2" border-radius="8px" />
         <mj-text font-weight="bold" font-size="16px" text-align="center" padding="10px 0 5px">
           Premium Product
         </mj-text>
@@ -435,7 +444,7 @@
         </mj-button>
       </mj-column>
       <mj-column width="50%">
-        <mj-image src="https://via.placeholder.com/300x300/fd79a8/white?text=Product+2" border-radius="8px" />
+        <mj-image src="https://picsum.photos/300/300?random=3" border-radius="8px" />
         <mj-text font-weight="bold" font-size="16px" text-align="center" padding="10px 0 5px">
           Exclusive Item
         </mj-text>
@@ -613,6 +622,11 @@
         
         isInitialized = true;
 
+        // Set desktop as default active device
+        setTimeout(() => {
+          updateDeviceButtonStates('Desktop');
+        }, 500);
+
         // Check if this is a first-time user
         if (!editor.getComponents().length) {
           setTimeout(() => {
@@ -655,6 +669,20 @@
       });
 
       // Right panel buttons (floating)
+      addBtn('panel__right', { 
+        id: 'device-desktop', 
+        className: 'gjs-pn-btn', 
+        label: `<i class="fas fa-desktop"></i> Desktop`, 
+        command: 'set-device-desktop' 
+      });
+      
+      addBtn('panel__right', { 
+        id: 'device-mobile', 
+        className: 'gjs-pn-btn', 
+        label: `<i class="fas fa-mobile-alt"></i> Mobile`, 
+        command: 'set-device-mobile' 
+      });
+      
       addBtn('panel__right', { 
         id: 'open-sm', 
         className: 'gjs-pn-btn', 
@@ -713,6 +741,39 @@
           }
         }
       });
+
+      // Device switching commands
+      editor.Commands.add('set-device-desktop', {
+        run(editor) {
+          editor.setDevice('Desktop');
+          updateDeviceButtonStates('Desktop');
+          console.log('Switched to Desktop view');
+        }
+      });
+
+      editor.Commands.add('set-device-mobile', {
+        run(editor) {
+          editor.setDevice('Mobile');
+          updateDeviceButtonStates('Mobile');
+          console.log('Switched to Mobile view');
+        }
+      });
+    }
+
+    // Update device button states
+    function updateDeviceButtonStates(activeDevice) {
+      const rightPanel = document.querySelector('.panel__right');
+      if (rightPanel) {
+        const deviceButtons = rightPanel.querySelectorAll('.gjs-pn-btn');
+        deviceButtons.forEach(btn => {
+          btn.classList.remove('gjs-pn-active');
+          const label = btn.textContent || btn.innerHTML;
+          if ((activeDevice === 'Desktop' && label.includes('Desktop')) ||
+              (activeDevice === 'Mobile' && label.includes('Mobile'))) {
+            btn.classList.add('gjs-pn-active');
+          }
+        });
+      }
     }
 
     // Set up custom blocks
@@ -722,6 +783,26 @@
         if (openBlocks) openBlocks.set('active', 1);
         
         const blockManager = editor.BlockManager;
+        
+        // Group component block
+        blockManager.add('mj-group', {
+          label: 'Group',
+          category: 'Layout',
+          content: `
+            <mj-group>
+              <mj-column width="50%">
+                <mj-text>Column 1 Content</mj-text>
+              </mj-column>
+              <mj-column width="50%">
+                <mj-text>Column 2 Content</mj-text>
+              </mj-column>
+            </mj-group>
+          `,
+          attributes: { 
+            class: 'fa-object-group', 
+            title: 'Group - Advanced column layouts with responsive behavior' 
+          }
+        });
         
         // Hero section block
         blockManager.add('hero-section', {
@@ -752,7 +833,7 @@
           content: `
             <mj-section padding="40px 0">
               <mj-column width="50%">
-                <mj-image src="https://via.placeholder.com/300x200/667eea/white?text=Product" alt="Product" border-radius="8px" />
+                <mj-image src="https://picsum.photos/300/200?random=6" alt="Product" border-radius="8px" />
                 <mj-text font-weight="bold" font-size="18px" padding="15px 0 5px">Product Name</mj-text>
                 <mj-text color="#666" font-size="14px">$99.99</mj-text>
                 <mj-button background-color="#667eea" border-radius="6px" padding="10px 0">
@@ -760,7 +841,7 @@
                 </mj-button>
               </mj-column>
               <mj-column width="50%">
-                <mj-image src="https://via.placeholder.com/300x200/764ba2/white?text=Product" alt="Product" border-radius="8px" />
+                <mj-image src="https://picsum.photos/300/200?random=7" alt="Product" border-radius="8px" />
                 <mj-text font-weight="bold" font-size="18px" padding="15px 0 5px">Product Name</mj-text>
                 <mj-text color="#666" font-size="14px">$99.99</mj-text>
                 <mj-button background-color="#764ba2" border-radius="6px" padding="10px 0">
