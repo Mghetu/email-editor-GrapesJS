@@ -3,428 +3,122 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>GrapesJS + MJML — Stable Boot + Native mj-group + Device Simulation</title>
+  <title>GrapesJS + MJML Email Editor</title>
 
-  <!-- GrapesJS core UI -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/grapesjs@0.22.2/dist/css/grapes.min.css" />
+  <!-- GrapesJS core stylesheet -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/grapesjs@0.22.2/dist/css/grapes.min.css"
+  />
 
-  <!-- Font Awesome (icons fixed via correct class prefixes) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <!-- Optional: Font Awesome for toolbar/block icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+  />
 
   <style>
-    html, body { height: 100%; margin: 0; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
-    #gjs { height: 100vh; overflow: hidden; }
+    /* Full‑screen editor container */
+    html, body { height:100%; margin:0; font-family:system-ui, sans-serif; }
+    #gjs { height:100vh; }
 
-    /* Hard floor under the canvas/iframe so it can't collapse */
-    .gjs-cv-canvas { min-height: 80vh; }
-    .gjs-cv-canvas iframe { min-height: 900px; transition: width .25s ease, transform .25s ease; }
-
-    /* Right floating panel (device + tools) */
-    .panel__right {
-      position: fixed; right: 16px; top: 16px; z-index: 999;
-      display: flex; flex-direction: column; gap: 8px;
-    }
-    .panel__right .gjs-pn-btn {
-      background: #fff; border: 0; border-radius: 8px; padding: 8px 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,.08); cursor: pointer;
-      display: inline-flex; align-items: center; gap: 8px; color: #222;
-      transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
-      font-size: 13px;
-    }
-    .panel__right .gjs-pn-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.12); }
-    .panel__right .gjs-pn-btn.gjs-pn-active { background: #4f46e5; color: #fff; }
-
-    /* Blocks aesthetics */
-    .gjs-block { border-radius: 8px; transition: transform .15s ease, box-shadow .15s ease; }
-    .gjs-block:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.12); }
-
-    /* Optional editor-only helper for mobile preview of mj-group */
-    .gjs-cv-canvas[data-device="Mobile"] iframe body [data-mjml="mj-group"] {
-      display: table !important; width: 100% !important;
-    }
-    .gjs-cv-canvas[data-device="Mobile"] iframe body [data-mjml="mj-group"] [data-mjml="mj-column"] {
-      display: table-cell !important; vertical-align: top !important; width: 50% !important; float: none !important;
-    }
-
-    /* Brand colors panel */
-    .brand-colors { position: fixed; right: 16px; top: 200px; z-index: 998; display: none; background: #fff; padding: 14px; border-radius: 8px; box-shadow: 0 8px 20px rgba(0,0,0,.12); min-width: 200px; }
-    .brand-colors.active { display: block; }
-    .brand-colors h4 { margin: 0 0 10px; font-size: 13px; display:flex; gap:8px; align-items:center; }
-    .color-palette { display:grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-    .color-swatch { width: 28px; height: 28px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; }
-    .color-swatch:hover { border-color: #111; }
-    @media (max-width: 768px) {
-      .panel__right { bottom: 12px; top: auto; right: 12px; flex-direction: row; }
-      .brand-colors { bottom: 64px; top: auto; right: 12px; }
-    }
+    /* A few cosmetic tweaks for nicer blocks/panels (optional) */
+    .gjs-block { border-radius:8px; transition:box-shadow .15s, transform .15s; }
+    .gjs-block:hover { box-shadow:0 6px 16px rgba(0,0,0,.12); transform:translateY(-2px); }
+    .gjs-pn-btn { padding:8px 10px; }
   </style>
 </head>
+
 <body>
+  <!-- GrapesJS will mount on this element -->
   <div id="gjs"></div>
 
-  <!-- Small brand colors helper (optional UI) -->
-  <div id="brandColors" class="brand-colors">
-    <h4><i class="fas fa-palette"></i> Brand Colors</h4>
-    <div class="color-palette" id="colorPalette"></div>
-  </div>
-
-  <!-- Scripts -->
+  <!-- GrapesJS core script -->
   <script src="https://cdn.jsdelivr.net/npm/grapesjs@0.22.2"></script>
+  <!-- GrapesJS‑MJML plugin -->
   <script src="https://cdn.jsdelivr.net/npm/grapesjs-mjml@1.0.5"></script>
 
   <script>
-    // -----------------------------
-    // Constants
-    // -----------------------------
-    const STORAGE_ID = 'enhanced-mjml-';
-    const DEFAULT_MJML = `
-<mjml>
-  <mj-head>
-    <mj-attributes><mj-text font-family="Inter, Arial" /></mj-attributes>
-  </mj-head>
-  <mj-body background-color="#f6f7fb">
-    <mj-section background-color="#ffffff" padding="40px 0">
-      <mj-column>
-        <mj-text align="center" font-size="24px" font-weight="700" color="#111827">Welcome 👋</mj-text>
-        <mj-text align="center" color="#4b5563">Drag blocks from the left or drop a Group to test traits.</mj-text>
-        <mj-button background-color="#4f46e5" color="#ffffff" border-radius="6px" padding="14px 22px">Primary CTA</mj-button>
-      </mj-column>
-    </mj-section>
-  </mj-body>
-</mjml>`.trim();
-
-    // -----------------------------
-    // Editor init (storage autoload disabled for safe boot)
-    // -----------------------------
+    /**
+     * Initialize the editor.
+     * - container: DOM element ID to mount editor
+     * - height: make it fill viewport
+     * - storageManager: basic localStorage configuration
+     * - deviceManager: same device presets as the official demo
+     * - plugins: load grapesjs-mjml
+     * - canvas.styles: inject webfont into canvas iframe
+     */
     const editor = grapesjs.init({
       container: '#gjs',
       height: '100vh',
       storageManager: {
         type: 'local',
         autosave: true,
-        autoload: false,     // SAFE BOOT: we'll load storage manually after mounting
+        autoload: true,     // Set to false for a “safe boot” load sequence
         stepsBeforeSave: 1,
-        id: STORAGE_ID
+        id: 'mjml-editor-'
       },
       deviceManager: {
         devices: [
-          { name: 'Desktop', width: '', widthMedia: '' },
-          { name: 'Tablet',  width: '768px', widthMedia: '768px' },
-          { name: 'Mobile',  width: '320px', widthMedia: '320px' },
+          { name:'Desktop', width:'',      widthMedia:''     },
+          { name:'Tablet',  width:'768px', widthMedia:'768px'},
+          { name:'Mobile',  width:'320px', widthMedia:'480px'}
         ]
       },
       plugins: ['grapesjs-mjml'],
       pluginsOpts: { 'grapesjs-mjml': {} },
       canvas: {
-        styles: ['https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap']
+        styles: [
+          'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap'
+        ]
       }
     });
 
-    // -----------------------------
-    // Safe boot helpers
-    // -----------------------------
-    function enforceMinHeights() {
+    /**
+     * Optional: preload a starter MJML template so the canvas is not empty
+     * on first load. StorageManager will overwrite it with saved content.
+     */
+    const defaultTemplate = `
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-text font-family="Inter, Arial, sans-serif" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f6f7fb">
+    <mj-section background-color="#ffffff" padding="40px 0">
+      <mj-column>
+        <mj-text align="center" font-size="24px" font-weight="700">
+          Welcome 👋
+        </mj-text>
+        <mj-text align="center" color="#666">
+          Drag blocks from the left to start building your email.
+        </mj-text>
+        <mj-button background-color="#4f46e5" color="#fff" border-radius="6px">
+          Primary CTA
+        </mj-button>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>`.trim();
+
+    // Load default template only if nothing exists in storage
+    editor.on('load', () => {
+      if (!editor.getHtml().trim()) {
+        editor.setComponents(defaultTemplate);
+      }
+    });
+
+    /**
+     * Extra UI tweaks (copy of demo behavior):
+     * - Keep canvas min height consistent
+     * - Listen for component changes to update preview
+     */
+    function enforceMinHeight() {
       const frameEl = editor.Canvas.getFrameEl();
       if (frameEl) frameEl.style.minHeight = '900px';
-      const doc = editor.Canvas.getDocument();
-      if (doc && doc.documentElement) {
-        doc.documentElement.style.minHeight = '900px';
-        if (doc.body) doc.body.style.minHeight = '900px';
-      }
     }
-
-    async function safeLoad() {
-      // 1) Start with default MJML to avoid empty-canvas collapse
-      editor.setComponents(DEFAULT_MJML);
-      editor.setStyle('');
-
-      // 2) Wait for mount
-      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-
-      // 3) Try loading from storage
-      let loaded = null;
-      try { loaded = await editor.Storage.load({ id: STORAGE_ID }); } catch(e) {}
-
-      // 4) If storage has content, use it; else keep default
-      if (loaded && loaded.components) {
-        editor.setComponents(loaded.components);
-        editor.setStyle(loaded.styles || '');
-      }
-
-      // 5) Refresh + floor
-      editor.refresh();
-      enforceMinHeights();
-
-      // 6) Second pass after iframe settles
-      setTimeout(() => {
-        editor.refresh();
-        enforceMinHeights();
-      }, 160);
-    }
-
-    // -----------------------------
-    // Panels & buttons (icons fixed)
-    // -----------------------------
-    const pn = editor.Panels;
-    const rightEl = document.createElement('div');
-    rightEl.className = 'panel__right';
-    document.body.appendChild(rightEl);
-    pn.addPanel({ id: 'panel__right', el: rightEl });
-
-    const addBtn = (panelId, opts) => pn.addButton(panelId, opts);
-    addBtn('panel__right', { id: 'device-desktop', className: 'gjs-pn-btn', label: '<i class="fas fa-desktop"></i> Desktop', command: 'set-device-desktop' });
-    addBtn('panel__right', { id: 'device-tablet',  className: 'gjs-pn-btn', label: '<i class="fas fa-tablet-alt"></i> Tablet',  command: 'set-device-tablet' });
-    addBtn('panel__right', { id: 'device-mobile',  className: 'gjs-pn-btn', label: '<i class="fas fa-mobile-alt"></i> Mobile',  command: 'set-device-mobile' });
-    addBtn('panel__right', { id: 'open-sm',        className: 'gjs-pn-btn', label: '<i class="fas fa-paint-brush"></i> Styles', command: 'open-sm' });
-    addBtn('panel__right', { id: 'open-layers',    className: 'gjs-pn-btn', label: '<i class="fas fa-layer-group"></i> Layers', command: 'open-layers' });
-    addBtn('panel__right', { id: 'open-traits',    className: 'gjs-pn-btn', label: '<i class="fas fa-cog"></i> Settings', command: 'open-traits' });
-    addBtn('panel__right', { id: 'brand-colors',   className: 'gjs-pn-btn', label: '<i class="fas fa-palette"></i> Colors', command: 'toggle-brand-colors' });
-
-    function setActiveDeviceBtn(id) {
-      rightEl.querySelectorAll('.gjs-pn-btn').forEach(btn => btn.classList.remove('gjs-pn-active'));
-      const btn = document.getElementById(id);
-      if (btn) btn.classList.add('gjs-pn-active');
-    }
-
-    // -----------------------------
-    // Device commands (avoid forcing iframe width)
-    // -----------------------------
-    editor.Commands.add('toggle-brand-colors', { run() {
-      const el = document.getElementById('brandColors');
-      el && el.classList.toggle('active');
-    }});
-    editor.Commands.add('set-device-desktop', { run(ed){ ed.setDevice('Desktop'); setActiveDeviceBtn('device-desktop'); try { ed.Canvas.setZoom(1); } catch(e){} enforceMinHeights(); } });
-    editor.Commands.add('set-device-tablet',  { run(ed){ ed.setDevice('Tablet');  setActiveDeviceBtn('device-tablet');  try { ed.Canvas.setZoom(0.95); } catch(e){} enforceMinHeights(); } });
-    editor.Commands.add('set-device-mobile',  { run(ed){ ed.setDevice('Mobile');  setActiveDeviceBtn('device-mobile');  try { ed.Canvas.setZoom(0.9); } catch(e){} enforceMinHeights(); } });
-
-    // -----------------------------
-    // Blocks (icons fixed)
-    // -----------------------------
-    function buildBlocks() {
-      const bm = editor.BlockManager;
-
-      bm.add('mj-group', {
-        label: 'Group',
-        category: 'Layout',
-        attributes: { class: 'fas fa-object-group', title: 'Group (with optional keep-inline-mobile)' },
-        content: `
-          <mj-group width="100%">
-            <mj-column width="50%" padding="10px">
-              <mj-text align="center" font-size="14px" padding="12px" background-color="#eef2ff" border-radius="4px">
-                <strong>Column 1</strong><br/>Sample content
-              </mj-text>
-            </mj-column>
-            <mj-column width="50%" padding="10px">
-              <mj-text align="center" font-size="14px" padding="12px" background-color="#fae8ff" border-radius="4px">
-                <strong>Column 2</strong><br/>Sample content
-              </mj-text>
-            </mj-column>
-          </mj-group>
-        `
-      });
-
-      bm.add('hero', {
-        label: 'Hero Section',
-        category: 'Layout',
-        attributes: { class: 'fas fa-star', title: 'Hero Section' },
-        content: `
-          <mj-section background-color="#4f46e5" padding="60px 0">
-            <mj-column>
-              <mj-text color="#ffffff" font-size="28px" font-weight="700" align="center">Your Amazing Headline</mj-text>
-              <mj-text color="#eef2ff" font-size="16px" align="center" padding="10px 0 20px">Describe your product or service here.</mj-text>
-              <mj-button background-color="#ffffff" color="#4f46e5" font-weight="700" padding="12px 24px">Get Started</mj-button>
-            </mj-column>
-          </mj-section>
-        `
-      });
-
-      bm.add('product-grid', {
-        label: 'Product Grid',
-        category: 'E-commerce',
-        attributes: { class: 'fas fa-shopping-cart', title: 'Product Grid' },
-        content: `
-          <mj-section padding="40px 0">
-            <mj-column width="50%">
-              <mj-image src="https://picsum.photos/300/200?random=6" alt="Product" border-radius="8px" />
-              <mj-text font-weight="700" font-size="18px" padding="12px 0 4px">Product Name</mj-text>
-              <mj-text color="#6b7280" font-size="14px">$99.99</mj-text>
-              <mj-button background-color="#4f46e5" border-radius="6px" padding="10px 16px">Shop Now</mj-button>
-            </mj-column>
-            <mj-column width="50%">
-              <mj-image src="https://picsum.photos/300/200?random=7" alt="Product" border-radius="8px" />
-              <mj-text font-weight="700" font-size="18px" padding="12px 0 4px">Product Name</mj-text>
-              <mj-text color="#6b7280" font-size="14px">$99.99</mj-text>
-              <mj-button background-color="#7c3aed" border-radius="6px" padding="10px 16px">Shop Now</mj-button>
-            </mj-column>
-          </mj-section>
-        `
-      });
-
-      bm.add('social', {
-        label: 'Social Links',
-        category: 'Social',
-        attributes: { class: 'fas fa-share-alt', title: 'Social Links' },
-        content: `
-          <mj-section padding="30px 0">
-            <mj-column>
-              <mj-text align="center" font-size="18px" font-weight="700" padding="0 0 16px">Follow Us</mj-text>
-              <mj-social icon-size="30px" mode="horizontal" padding="0" text-padding="0 12px 0 0">
-                <mj-social-element name="facebook" href="#" />
-                <mj-social-element name="twitter" href="#" />
-                <mj-social-element name="instagram" href="#" />
-                <mj-social-element name="linkedin" href="#" />
-              </mj-social>
-            </mj-column>
-          </mj-section>
-        `
-      });
-    }
-
-    // -----------------------------
-    // Native mj-group registration (with "Keep side-by-side on mobile" trait)
-    // -----------------------------
-    (function registerMJGroup(){
-      const domc = editor.DomComponents;
-      if (domc.getType('mj-group')) return;
-
-      domc.addType('mj-group', {
-        isComponent: el => el.tagName === 'MJ-GROUP' ? { type: 'mj-group' } : false,
-
-        model: {
-          defaults: {
-            tagName: 'mj-group',
-            attributes: { 'data-mjml': 'mj-group' },
-            draggable: '[data-type=mj-section], [data-type=mj-wrapper]',
-            droppable: '[data-type=mj-column]',
-            copyable: true,
-            traits: [
-              { type: 'select', name: 'direction', label: 'Direction', options: [
-                { value: 'ltr', name: 'Left → Right' }, { value: 'rtl', name: 'Right → Left' }
-              ]},
-              { type: 'text',   name: 'width', label: 'Width', placeholder: 'e.g. 50%' },
-              { type: 'color',  name: 'background-color', label: 'Background' },
-              { type: 'text',   name: 'css-class', label: 'CSS Class' },
-              { type: 'checkbox', name: 'keep-inline-mobile', label: 'Keep side-by-side on mobile' }
-            ]
-          },
-
-          init() {
-            this.on('change:attributes', () => {
-              const attrs = this.getAttributes() || {};
-              const keep = attrs['keep-inline-mobile'];
-              let klass = attrs['css-class'];
-
-              if (keep) {
-                if (!klass) {
-                  klass = 'mj-keep-inline-' + this.getId().replace(/:/g,'-');
-                  this.addAttributes({ 'css-class': klass });
-                } else if (!/mj-keep-inline-/.test(klass)) {
-                  klass = (klass + ' mj-keep-inline-' + this.getId().replace(/:/g,'-')).trim();
-                  this.addAttributes({ 'css-class': klass });
-                }
-              }
-              ensureHeadKeepInlineStyle();
-            });
-          }
-        },
-
-        view: { tagName: 'mj-group' }
-      });
-    })();
-
-    // -----------------------------
-    // <mj-head><mj-style id="keep-inline-styles"> management
-    // -----------------------------
-    function ensureHeadKeepInlineStyle() {
-      const groups = editor.getWrapper().find('mj-group') || [];
-      const enabled = groups.filter(g => {
-        try { return !!(g.getAttributes?.()['keep-inline-mobile']); }
-        catch(e){ return false; }
-      });
-
-      if (!enabled.length) { removeKeepInlineStyle(); return; }
-
-      let head = (editor.getWrapper().find('mj-head') || [])[0];
-      if (!head) head = editor.getWrapper().append({ type: 'mj-head' }, { at: 0 })[0];
-
-      let styleCmp = (head.find('mj-style') || []).find(c => (c.getAttributes?.() || {})['id'] === 'keep-inline-styles');
-      if (!styleCmp) {
-        styleCmp = head.append({
-          type: 'mj-style',
-          attributes: { id: 'keep-inline-styles' },
-          content: ''
-        })[0];
-      }
-
-      const lines = ['@media (max-width:480px) {'];
-      enabled.forEach(g => {
-        const attrs = g.getAttributes?.() || {};
-        const kclass = (attrs['css-class'] || '').split(/\s+/).find(c => /^mj-keep-inline-/.test(c));
-        if (!kclass) return;
-        lines.push(
-          `  .${kclass} table, .${kclass} tbody, .${kclass} tr, .${kclass} td { display: table; width: 100% !important; }`,
-          `  .${kclass} .mj-column-per-50, .${kclass} .mj-column-per-33, .${kclass} .mj-column-per-25 { display: table-cell !important; width: 50% !important; vertical-align: top !important; }`
-        );
-      });
-      lines.push('}');
-      styleCmp.set('content', lines.join('\\n'));
-    }
-
-    function removeKeepInlineStyle() {
-      const head = (editor.getWrapper().find('mj-head') || [])[0];
-      if (!head) return;
-      (head.find('mj-style') || []).forEach(c => {
-        const a = c.getAttributes?.() || {};
-        if (a.id === 'keep-inline-styles') c.remove();
-      });
-    }
-
-    // -----------------------------
-    // Brand color mini panel
-    // -----------------------------
-    const brandColors = ['#4f46e5','#7c3aed','#06b6d4','#10b981','#f59e0b','#ef4444','#0ea5e9','#8b5cf6','#14b8a6','#22c55e'];
-    function buildBrandColorPalette() {
-      const pal = document.getElementById('colorPalette');
-      if (!pal) return;
-      pal.innerHTML = '';
-      brandColors.forEach(c => {
-        const el = document.createElement('div');
-        el.className = 'color-swatch';
-        el.style.backgroundColor = c;
-        el.title = c;
-        el.onclick = () => {
-          const sel = editor.getSelected();
-          if (!sel) return;
-          sel.addStyle({ 'background-color': c });
-        };
-        pal.appendChild(el);
-      });
-    }
-
-    // -----------------------------
-    // Load sequence
-    // -----------------------------
-    editor.on('load', async () => {
-      // Safe boot
-      await safeLoad();
-
-      // Build UI bits now
-      buildBlocks();
-      buildBrandColorPalette();
-
-      // Default device
-      setActiveDeviceBtn('device-desktop');
-      // Use built-in device widths; we only apply zoom + min-height
-      editor.setDevice('Desktop');
-      try { editor.Canvas.setZoom(1); } catch(e){}
-      enforceMinHeights();
-    });
-
-    // Keep preview consistent
-    editor.on('component:add component:remove component:update', () => {
-      enforceMinHeights();
-      ensureHeadKeepInlineStyle();
-    });
+    editor.on('load component:add component:remove component:update', enforceMinHeight);
   </script>
 </body>
 </html>
