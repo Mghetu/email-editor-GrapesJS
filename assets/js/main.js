@@ -53,30 +53,22 @@
           // preserve Tailwind classes applied to MJML elements.
           resetStyle: false,
         },
-        'grapesjs-tailwind': {
-          /*
-           * Override the default Play CDN used by the Tailwind plugin.
-           *
-           * By default, grapesjs‑tailwind fetches Tailwind via
-           * `https://cdn.tailwindcss.com`, which is intended only for
-           * development and triggers a console warning in production.
-           * Here we point it at the compiled Tailwind CSS bundle served
-           * from jsDelivr.  This silences the warning while still
-           * providing Tailwind utilities within the editor.
-           *
-           * Note: This URL points to the minified CSS file rather than
-           * the play CDN script; if future versions of the plugin
-           * require a JavaScript file, you may need to adjust this.
-           */
-          tailwindPlayCdn: 'https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css',
-        },
+        /*
+         * No options are passed to `grapesjs-tailwind`.  The plugin will
+         * automatically load Tailwind via its default Play CDN script
+         * (https://cdn.tailwindcss.com) and inject the compiled CSS
+         * into the editor’s iframe.  Although the Play CDN is intended
+         * primarily for development, it performs the necessary JIT
+         * compilation of your Tailwind classes at runtime.  By letting
+         * the plugin manage the process we avoid cross‑origin issues
+         * encountered when attempting to load a standalone CSS bundle.
+         */
+        'grapesjs-tailwind': {},
       },
-      canvas: {
-        // Inject Tailwind CSS into the iframe where the email is rendered.
-        styles: [
-          'https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css',
-        ],
-      },
+      // The canvas configuration is omitted here.  The Tailwind plugin
+      // handles injecting styles into the iframe on its own, so there’s
+      // no need to specify `canvas.styles` manually.  GrapesJS will
+      // otherwise use its default iframe styling.
     });
 
     // Helper to add a custom MJML block to the block manager.  Each block
