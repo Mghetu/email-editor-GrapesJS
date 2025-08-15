@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GrapesJS + MJML Email Editor</title>
+
+  <!-- GrapesJS core stylesheet -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/grapesjs@0.22.2/dist/css/grapes.min.css"
+  />
+
+  <!-- Optional: Font Awesome for toolbar/block icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+  />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* Full‑screen editor container */
+    html, body { height:100%; margin:0; font-family:system-ui, sans-serif; }
+    #gjs { height:100vh; }
+
+    /* A few cosmetic tweaks for nicer blocks/panels (optional) */
+    .gjs-block { border-radius:8px; transition:box-shadow .15s, transform .15s; }
+    .gjs-block:hover { box-shadow:0 6px 16px rgba(0,0,0,.12); transform:translateY(-2px); }
+    .gjs-pn-btn { padding:8px 10px; }
+  </style>
+</head>
+
+<body>
+  <!-- GrapesJS will mount on this element -->
+  <div id="gjs"></div>
+
+  <!-- GrapesJS core script -->
+  <script src="https://cdn.jsdelivr.net/npm/grapesjs@0.22.2"></script>
+  <!-- GrapesJS‑MJML plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/grapesjs-mjml@1.0.5"></script>
+
+  <script>
+    /**
+     * Initialize the editor.
+     * - container: DOM element ID to mount editor
+     * - height: make it fill viewport
+     * - storageManager: basic localStorage configuration
+     * - deviceManager: same device presets as the official demo
+     * - plugins: load grapesjs-mjml
+     * - canvas.styles: inject webfont into canvas iframe
+     */
+    const editor = grapesjs.init({
+      container: '#gjs',
+      height: '100vh',
+      storageManager: {
+        type: 'local',
+        autosave: true,
+        autoload: true,     // Set to false for a “safe boot” load sequence
+        stepsBeforeSave: 1,
+        id: 'mjml-editor-'
+      },
+      deviceManager: {
+        devices: [
+          { name:'Desktop', width:'',      widthMedia:''     },
+          { name:'Tablet',  width:'768px', widthMedia:'768px'},
+          { name:'Mobile',  width:'320px', widthMedia:'480px'}
+        ]
+      },
+      plugins: ['grapesjs-mjml'],
+      pluginsOpts: { 'grapesjs-mjml': {} },
+      canvas: {
+        styles: [
+          'https://cdn.tailwindcss.com',
+          'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap'
+        ]
+      }
+    });
+
+    // Register commands that switch the editor's device viewport.
+    // The device buttons rendered by GrapesJS-MJML invoke these commands
+    // so defining them ensures the canvas actually resizes when clicked.
+    editor.Commands.add('set-device-desktop', {
+      run: ed => ed.setDevice('Desktop'),
+    });
+    editor.Commands.add('set-device-tablet', {
+      run: ed => ed.setDevice('Tablet'),
+    });
+    editor.Commands.add('set-device-mobile', {
+      run: ed => ed.setDevice('Mobile'),
+    });
+    
+    /**
+     * Optional: preload a starter MJML template so the canvas is not empty
+     * on first load. StorageManager will overwrite it with saved content.
+     */
+    const defaultTemplate = `
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-text font-family="Inter, Arial, sans-serif" />
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#f6f7fb">
+    <mj-section background-color="#ffffff" padding="40px 0">
+      <mj-column>
+        <mj-text align="center" font-size="24px" font-weight="700">
+          Welcome 👋
+        </mj-text>
+        <mj-text align="center" color="#666">
+          Drag blocks from the left to start building your email.
+        </mj-text>
+        <mj-button background-color="#4f46e5" color="#fff" border-radius="6px">
+          Primary CTA
+        </mj-button>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>`.trim();
+
+    // Load default template only if nothing exists in storage
+    editor.on('load', () => {
+      if (!editor.getHtml().trim()) {
+        editor.setComponents(defaultTemplate);
+      }
+    });
+
+    /**
+     * Extra UI tweaks (copy of demo behavior):
+     * - Keep canvas min height consistent
+     * - Listen for component changes to update preview
+     */
+    function enforceMinHeight() {
+      const frameEl = editor.Canvas.getFrameEl();
+      if (frameEl) frameEl.style.minHeight = '900px';
+    }
+    editor.on('load component:add component:remove component:update', enforceMinHeight);
+  </script>
+</body>
+</html>
