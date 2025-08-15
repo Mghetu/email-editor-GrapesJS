@@ -74,6 +74,19 @@
       }
     });
 
+    // Register commands that switch the editor's device viewport.
+    // The device buttons rendered by GrapesJS-MJML invoke these commands
+    // so defining them ensures the canvas actually resizes when clicked.
+    editor.Commands.add('set-device-desktop', {
+      run: ed => ed.setDevice('Desktop'),
+    });
+    editor.Commands.add('set-device-tablet', {
+      run: ed => ed.setDevice('Tablet'),
+    });
+    editor.Commands.add('set-device-mobile', {
+      run: ed => ed.setDevice('Mobile'),
+    });
+    
     /**
      * Optional: preload a starter MJML template so the canvas is not empty
      * on first load. StorageManager will overwrite it with saved content.
