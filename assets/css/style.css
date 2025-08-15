@@ -1,0 +1,69 @@
+/*
+  style.css
+
+  Basic page styles for the GrapesJS MJML Editor.  These rules
+  affect the outer document (not the email preview) and keep the layout
+  clean.  Feel free to extend this file to customise the look and feel
+  of the page hosting the editor.
+*/
+
+/* Reset default margins and paddings */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/*
+  Layout definitions
+
+  The editor consists of a row with a left sidebar and the main canvas.  We
+  use flexbox to arrange these horizontally.  The left panel receives a
+  fixed width and the canvas grows to fill the remaining space.  Each
+  manager container inside the left panel will stretch to accommodate
+  their content and scroll independently if necessary.
+*/
+.editor-row {
+  display: flex;
+  height: 100%;
+}
+
+/* Left sidebar that holds the block and layer managers.  The dark
+   background and light text mirror the default GrapesJS theme. */
+#left-panel {
+  width: 260px;
+  background-color: #1e1e1e;
+  color: #f5f5f5;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Containers for the individual managers.  Give each a bit of
+   separation. */
+#blocks-container,
+#layers-container {
+  padding: 10px;
+  flex: 1;
+  /* Ensure child managers take full width */
+  min-width: 0;
+  /* Allow scrolling within each manager if content exceeds space */
+  overflow-y: auto;
+}
+
+/* Ensure the editor canvas fills the available space next to the sidebar */
+#gjs {
+  flex: 1;
+  min-height: 100%;
+}
+
+/* Example styling for export panel buttons; GrapesJS assigns classes to
+   panels and buttons.  These selectors target our custom export panel
+   to give the buttons a bit of breathing room. */
+.gjs-pn-panel#export-panel {
+  padding: 0 5px;
+}
+.gjs-pn-panel#export-panel .gjs-pn-btn {
+  margin-right: 5px;
+}
